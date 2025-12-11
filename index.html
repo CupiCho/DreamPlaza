@@ -553,6 +553,7 @@
                 <h2 class="modal-title" style="margin-bottom:15px;">確認使用</h2>
                 <img id="confirm-coupon-img" src="" class="coupon-confirm-img">
                 <div class="coupon-confirm-content">
+                    <p>· 排除88折(不含)以下折扣、買一送一、心動價、優惠商品及相關集團優惠。</p>
                     <p>· 活動贈品圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。</p>
                     <p>· 其他注意事項及未盡事宜，請詳使用說明。</p>
                     <p style="color:#c0392b; font-weight:bold; font-size:1.15em;">· 處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。</p>
@@ -778,17 +779,17 @@
                  if (levelIdx === 1) { // 銅賞
                     coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'bronze_amer' });
                     coupons.push({ name: '5% 回饋優惠卷', qty: 1, desc: '消費回饋', img: imgMap['5%'], baseId: 'bronze_5' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 1, desc: '好友分享', img: imgMap['bogo'], baseId: 'bronze_bogo' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 1, desc: '有福同享', img: imgMap['bogo'], baseId: 'bronze_bogo' });
                  }
                  else if (levelIdx === 2) { // 銀賞
                     coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'silver_amer' });
                     coupons.push({ name: '8% 回饋優惠卷', qty: 2, desc: '消費回饋', img: imgMap['8%'], baseId: 'silver_8' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 2, desc: '好友分享', img: imgMap['bogo'], baseId: 'silver_bogo' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 2, desc: '有福同享', img: imgMap['bogo'], baseId: 'silver_bogo' });
                  }
                  else if (levelIdx === 3) { // 金賞
                     coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'gold_amer' });
                     coupons.push({ name: '10% 回饋優惠卷', qty: 3, desc: '消費回饋', img: imgMap['10%'], baseId: 'gold_10' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 3, desc: '好友分享', img: imgMap['bogo'], baseId: 'gold_bogo' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 3, desc: '有福同享', img: imgMap['bogo'], baseId: 'gold_bogo' });
                     coupons.push({ name: '金賞好禮兌換卷', qty: 3, desc: '專屬好禮', img: imgMap['gold'], baseId: 'gold_gift' });
                  }
                  return coupons;
