@@ -29,6 +29,22 @@
             box-sizing: border-box;
         }
 
+        /* LINE 瀏覽器提示 */
+        #line-browser-alert {
+            display: none; /* 預設隱藏 */
+            background-color: #ff9800;
+            color: #fff;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 0.9em;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+        }
+
         /* 頁面容器 */
         #login-page, #customer-home-page, #admin-home-page { 
             width: 100%; 
@@ -341,6 +357,12 @@
         .coupon-desc { font-size: 0.9em; color: #666; }
         .coupon-action { padding-right: 15px; }
         .btn-use-coupon { background-color: #4a2c2a; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
+        .btn-use-coupon:disabled { background-color: #ccc; cursor: default; }
+
+        /* 優惠卷免責聲明樣式 */
+        .coupon-confirm-content { text-align: left; margin-bottom: 20px; font-size: 0.9em; line-height: 1.5; color: #555; }
+        .coupon-confirm-content p { margin: 8px 0; }
+        .coupon-confirm-img { width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 15px; border-radius: 8px; border: 1px solid #eee; }
 
         .warning-text { color: #c0392b; font-weight: bold; margin: 15px 0; }
 
@@ -359,6 +381,9 @@
     </style>
 </head>
 <body>
+    <!-- 提示使用者用外部瀏覽器開啟 (for LINE) -->
+    <div id="line-browser-alert">請點擊右上角選單，選擇「使用預設瀏覽器開啟」以獲得最佳體驗</div>
+
     <!-- 定義 SVG 漸層 (隱藏) -->
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -517,7 +542,7 @@
             </div>
         </div>
         
-        <!-- 新增：我的優惠卷 Modal -->
+        <!-- 我的優惠卷 Modal -->
         <div id="my-coupons-modal" class="modal-overlay hidden">
             <div class="modal-content">
                 <span class="close-button" id="close-coupons-modal-btn">&times;</span>
@@ -526,6 +551,33 @@
                 <div id="coupons-list-container">
                     <!-- JS 生成優惠卷 -->
                 </div>
+            </div>
+        </div>
+
+        <!-- 優惠卷確認使用視窗 -->
+        <div id="coupon-confirm-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h2 class="modal-title" style="margin-bottom:15px;">確認使用</h2>
+                <img id="confirm-coupon-img" src="" class="coupon-confirm-img">
+                <div class="coupon-confirm-content">
+                    <p>· 活動贈品圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。</p>
+                    <p>· 其他注意事項及未盡事宜，請詳使用說明。</p>
+                    <p style="color:#c0392b; font-weight:bold;">· 處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。</p>
+                </div>
+                <div class="confirm-buttons">
+                    <button id="cancel-use-coupon-btn" class="btn btn-secondary">取消</button>
+                    <button id="confirm-use-coupon-btn" class="btn btn-primary">確認使用</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 核銷碼顯示視窗 -->
+        <div id="coupon-code-display-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal(document.getElementById('coupon-code-display-modal'))">&times;</span>
+                <h2 class="modal-title" style="margin-top:20px;">請出示此畫面給店員</h2>
+                <p class="verification-code">287719</p>
+                <p class="timer-text">核銷成功！請點擊右上角關閉。</p>
             </div>
         </div>
 
@@ -584,10 +636,17 @@
         // 全域函數定義，確保 HTML 中的 onclick 能呼叫到
         window.openCouponsModal = function() {}; 
         window.openMemberDetailModal = function() {};
+        window.closeModal = function(modal) { if(modal) modal.classList.add('hidden'); };
 
         document.addEventListener('DOMContentLoaded', function() {
             // FIX: 在此宣告 savedPhone 避免程式崩潰
             const savedPhone = localStorage.getItem('cupicho_user_phone');
+            let pendingCouponUseId = null; // 暫存要使用的優惠卷 ID
+
+            // 偵測 LINE 瀏覽器
+            if (navigator.userAgent.indexOf("Line") > -1) {
+                document.getElementById('line-browser-alert').style.display = 'block';
+            }
 
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaKvazBUNh538Xud67UvheZqKEwR8R1Xuo_wLcpyl39oQ9pGAuk8_qZWTvrhCjV88/exec";
 
@@ -639,6 +698,8 @@
             const voucherCloseBtn = document.getElementById('close-voucher-modal-btn'); 
             const myCouponsModal = document.getElementById('my-coupons-modal');
             const couponsCloseBtn = document.getElementById('close-coupons-modal-btn');
+            const couponConfirmModal = document.getElementById('coupon-confirm-modal');
+            const couponCodeDisplayModal = document.getElementById('coupon-code-display-modal');
 
             // Level Elements
             const levelCard = document.getElementById('member-status-card');
@@ -671,6 +732,10 @@
             const redeemPointsBtn = document.getElementById('redeem-points-btn');
             const cancelPointRedeemBtn = document.getElementById('cancel-point-redeem-btn'); 
             const staffConfirmPointRedeemBtn = document.getElementById('staff-confirm-point-redeem-btn'); 
+            
+            // Coupon Action Buttons
+            const cancelUseCouponBtn = document.getElementById('cancel-use-coupon-btn');
+            const confirmUseCouponBtn = document.getElementById('confirm-use-coupon-btn');
             
             // QR
             const qrReaderContainer = document.getElementById('qr-reader-container');
@@ -707,43 +772,31 @@
                  return starsHtml;
              }
 
-             // 計算優惠卷邏輯 (更新圖片對應)
+             // 計算優惠卷邏輯 (更新圖片對應 & ID 生成)
              function getCouponsForLevel(levelIdx) {
                  const coupons = [];
-                 
-                 // 圖片對應表 (使用標準英文檔名)
-                 const imgMap = {
-                     '5%': 'coupon_5.png',
-                     '8%': 'coupon_8.png',
-                     '10%': 'coupon_10.png',
-                     'americano': 'gift_americano.png',
-                     'bogo': 'gift_bogo.png',
-                     'gold': 'gift_gold.png'
-                 };
+                 const imgMap = { '5%': 'coupon_5.png', '8%': 'coupon_8.png', '10%': 'coupon_10.png', 'americano': 'gift_americano.png', 'bogo': 'gift_bogo.png', 'gold': 'gift_gold.png' };
 
                  if (levelIdx === 1) { // 銅賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'] });
-                    coupons.push({ name: '5% 回饋優惠卷', qty: 1, desc: '消費回饋', img: imgMap['5%'] });
-                    coupons.push({ name: '飲品買一送一卷', qty: 1, desc: '好友分享', img: imgMap['bogo'] });
+                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'bronze_amer' });
+                    coupons.push({ name: '5% 回饋優惠卷', qty: 1, desc: '消費回饋', img: imgMap['5%'], baseId: 'bronze_5' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 1, desc: '好友分享', img: imgMap['bogo'], baseId: 'bronze_bogo' });
                  }
-                 
                  else if (levelIdx === 2) { // 銀賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'] });
-                    coupons.push({ name: '8% 回饋優惠卷', qty: 2, desc: '消費回饋', img: imgMap['8%'] });
-                    coupons.push({ name: '飲品買一送一卷', qty: 2, desc: '好友分享', img: imgMap['bogo'] });
+                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'silver_amer' });
+                    coupons.push({ name: '8% 回饋優惠卷', qty: 2, desc: '消費回饋', img: imgMap['8%'], baseId: 'silver_8' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 2, desc: '好友分享', img: imgMap['bogo'], baseId: 'silver_bogo' });
                  }
-                 
                  else if (levelIdx === 3) { // 金賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'] });
-                    coupons.push({ name: '10% 回饋優惠卷', qty: 3, desc: '消費回饋', img: imgMap['10%'] });
-                    coupons.push({ name: '飲品買一送一卷', qty: 3, desc: '好友分享', img: imgMap['bogo'] });
-                    coupons.push({ name: '金賞好禮兌換卷', qty: 3, desc: '專屬好禮', img: imgMap['gold'] });
+                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'gold_amer' });
+                    coupons.push({ name: '10% 回饋優惠卷', qty: 3, desc: '消費回饋', img: imgMap['10%'], baseId: 'gold_10' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 3, desc: '好友分享', img: imgMap['bogo'], baseId: 'gold_bogo' });
+                    coupons.push({ name: '金賞好禮兌換卷', qty: 3, desc: '專屬好禮', img: imgMap['gold'], baseId: 'gold_gift' });
                  }
-                 
                  return coupons;
              }
 
-             // 定義開啟優惠卷 Modal 的函數 (更新版：展開顯示)
+             // 定義開啟優惠卷 Modal 的函數 (更新版：展開顯示 + 使用狀態)
              window.openCouponsModal = function() {
                  if(!currentCustomerPhone) return;
                  const coupons = getCouponsForLevel(currentLevelIndex);
@@ -756,9 +809,18 @@
                      coupons.forEach(couponGroup => {
                          // 根據數量重複渲染
                          for(let i=0; i<couponGroup.qty; i++) {
+                             const uniqueId = `${couponGroup.baseId}_${i}`;
+                             // 檢查是否已使用
+                             const isUsed = localStorage.getItem(`used_coupon_${uniqueId}`) === 'true';
+                             
                              const div = document.createElement('div');
                              div.className = 'coupon-item';
                              
+                             const btnText = isUsed ? '已使用' : '使用';
+                             const btnClass = isUsed ? 'btn-use-coupon disabled' : 'btn-use-coupon';
+                             const disabledAttr = isUsed ? 'disabled' : '';
+                             const styleAttr = isUsed ? 'background-color:#ccc; cursor:default;' : '';
+
                              div.innerHTML = `
                                 <div class="coupon-img-container">
                                     <img src="${couponGroup.img}" alt="${couponGroup.name}" class="coupon-img">
@@ -768,15 +830,56 @@
                                     <span class="coupon-desc">${couponGroup.desc}</span>
                                 </div>
                                 <div class="coupon-action">
-                                    <button class="btn-use-coupon">使用</button>
+                                    <button class="${btnClass}" ${disabledAttr} style="${styleAttr}" data-id="${uniqueId}" data-name="${couponGroup.name}" data-img="${couponGroup.img}">${btnText}</button>
                                 </div>
                              `;
                              listContainer.appendChild(div);
                          }
                      });
+                     
+                     // 綁定點擊事件
+                     listContainer.querySelectorAll('.btn-use-coupon:not(:disabled)').forEach(btn => {
+                         btn.addEventListener('click', (e) => {
+                             const couponId = e.target.getAttribute('data-id');
+                             const couponName = e.target.getAttribute('data-name');
+                             const couponImg = e.target.getAttribute('data-img');
+                             
+                             // 設置確認視窗內容
+                             pendingCouponUseId = couponId;
+                             document.getElementById('confirm-coupon-img').src = couponImg;
+                             
+                             // 關閉列表，打開確認
+                             closeModal(myCouponsModal);
+                             openModal(couponConfirmModal);
+                         });
+                     });
                  }
                  openModal(myCouponsModal);
              };
+
+             // 優惠卷確認使用按鈕邏輯
+             if (confirmUseCouponBtn) {
+                 confirmUseCouponBtn.addEventListener('click', () => {
+                     if (pendingCouponUseId) {
+                         // 設定為已使用
+                         localStorage.setItem(`used_coupon_${pendingCouponUseId}`, 'true');
+                         
+                         // 關閉確認，打開核銷碼
+                         closeModal(couponConfirmModal);
+                         openModal(couponCodeDisplayModal);
+                         
+                         // 重置
+                         pendingCouponUseId = null;
+                     }
+                 });
+             }
+             
+             if (cancelUseCouponBtn) {
+                 cancelUseCouponBtn.addEventListener('click', () => {
+                     closeModal(couponConfirmModal);
+                     openCouponsModal(); // 回到列表
+                 });
+             }
 
              function updateMemberLevelUI(points) {
                  if (!levelCard) return; 
