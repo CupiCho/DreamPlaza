@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.04.42
-    Last Updated: 2025/01/07 (Update Coupon Terms: Custom Red Text Logic for Americano & BOGO)
+    Current Version: v25.04.45
+    Last Updated: 2025/01/07 (Update Custom Coupon Image: Larger & Rounder Font)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -351,7 +351,7 @@
 
     <div id="root-container">
         <div id="login-page">
-            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.42</div></div>
+            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.45</div></div>
         </div>
         <div id="customer-home-page" class="hidden">
             <div class="customer-container">
@@ -395,7 +395,7 @@
                     <p class="info-main-data"><span id="voucher-balance">0</span><span class="small-text">杯</span></p>
                     <div class="action-buttons-group"><button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button></div>
                 </div>
-                <div class="version-info">v25.04.42</div>
+                <div class="version-info">v25.04.45</div>
             </div>
         </div>
         
@@ -536,9 +536,16 @@
                             <option value="gift_americano">美式咖啡兌換卷</option>
                             <option value="gift_bogo">飲品買一送一卷</option>
                             <option value="coupon_5">5% 回饋優惠卷</option>
+                            <option value="coupon_8">8% 回饋優惠卷</option>
                             <option value="coupon_10">10% 回饋優惠卷</option>
                             <option value="gift_gold">金賞好禮兌換卷</option>
+                            <option value="other">其他 (自訂名稱)</option>
                         </select>
+                    </div>
+                    <!-- 自訂名稱欄位 (預設隱藏) -->
+                    <div id="custom-coupon-name-group" class="form-group hidden">
+                        <label for="send-coupon-custom-name">優惠卷名稱</label>
+                        <input type="text" id="send-coupon-custom-name" class="form-input" placeholder="例如：生日禮、補償卷">
                     </div>
                     <div class="form-group">
                         <label for="send-coupon-qty">數量</label>
@@ -631,7 +638,7 @@
             // =============================================================
             // 2. 變數與常數宣告 (Variables & Constants) - 放在最上面
             // =============================================================
-            const APP_VERSION = 'v25.04.42';
+            const APP_VERSION = 'v25.04.45';
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec";
 
             const admins = {
@@ -640,7 +647,6 @@
                 '10426630': '6630 Elaine'
             };
             
-            // 允許派發優惠卷的管理員
             const CAN_SEND_COUPON_ADMINS = ['10427091']; // Arno
 
             const redeemableItems = [
@@ -650,13 +656,22 @@
                 { cost: 10, name: "精品禮盒", image: "item_10pt.png" }
             ];
 
+            // FIX: 使用 encodeURIComponent 解決中文編碼問題
+            const svgContent = `<svg width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="5" y="5" width="110" height="110" rx="15" ry="15" fill="none" stroke="#DAA520" stroke-width="3"/>
+                  <text x="50%" y="42" dominant-baseline="middle" text-anchor="middle" font-size="36" fill="#DAA520" font-weight="bold" font-family="'Microsoft JhengHei', 'Heiti TC', sans-serif">專屬</text>
+                  <text x="50%" y="82" dominant-baseline="middle" text-anchor="middle" font-size="36" fill="#DAA520" font-weight="bold" font-family="'Microsoft JhengHei', 'Heiti TC', sans-serif">優惠</text>
+                </svg>`;
+            const CUSTOM_COUPON_IMG = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgContent);
+
             const LEVEL_THRESHOLDS = { LV1: 10, LV2: 20, LV3: 40 };
 
             const couponTerms = {
                  'americano': ['晉升禮之飲品兌換限精品美式，不限內用/外帶，冰/熱不拘。', '會員晉升禮兌換卷圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。', '其他注意事項及未盡事宜，請洽店內夥伴。', '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。'],
                  'rebate': ['排除88折(不含)以下折扣、買一送一、心動價、優惠商品、百貨聯名信用卡提供之折扣及相關集團優惠。', '會員回饋優惠券圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。', '其他注意事項及未盡事宜，請洽店內夥伴。', '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。'],
                  'bogo': ['不得再使用百貨聯名信用卡提供之折扣及相關集團優惠。', '不限內用/外帶，冰/熱不拘。', '會員飲品買一送一兌換卷圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。', '其他注意事項及未盡事宜，請洽店內夥伴。', '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。', '此兌換卷恕不參與寄杯活動，需一次領取兩杯飲品。'],
-                 'gold': ['可可金賞會員好禮兌換卷圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。', '其他注意事項及未盡事宜，請洽店內夥伴。', '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。']
+                 'gold': ['可可金賞會員好禮兌換卷圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。', '其他注意事項及未盡事宜，請洽店內夥伴。', '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。'],
+                 'other': ['此為專屬優惠卷，詳情請洽門市人員。', '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。']
              };
 
             let currentCustomerPhone = null;
@@ -671,11 +686,11 @@
             let currentAnnualPoints = 0; 
             let currentLevelIndex = 0; 
             let globalUsedCoupons = []; 
-            let globalExtraCoupons = []; // 新增：儲存派發的額外優惠卷
+            let globalExtraCoupons = []; 
             let html5QrCodeScanner = null;
             let isCouponsLoaded = false; 
             const savedPhone = localStorage.getItem('cupicho_user_phone');
-            let currentAdminId = null; // 新增：記錄目前登入的管理員
+            let currentAdminId = null; 
             
             // 1. LINE 瀏覽器強制跳轉
             if (navigator.userAgent.indexOf("Line") > -1) {
@@ -770,7 +785,6 @@
                  return coupons;
             }
 
-            // 新增：整合等級卷與額外派發卷的計算
             function getTotalCoupons() {
                  let count = getUnusedCouponCount(currentLevelIndex);
                  globalExtraCoupons.forEach(c => {
@@ -850,12 +864,24 @@
                  // 合併一般卷與額外派發卷
                  // 額外卷格式轉換為顯示格式
                  const extraDisplayList = globalExtraCoupons.map(c => {
-                     let imgMap = { 'gift_americano': 'gift_americano.png', 'gift_bogo': 'gift_bogo.png', 'coupon_5': 'coupon_5.png', 'coupon_10': 'coupon_10.png', 'gift_gold': 'gift_gold.png' };
+                     let imgMap = { 'gift_americano': 'gift_americano.png', 'gift_bogo': 'gift_bogo.png', 'coupon_5': 'coupon_5.png', 'coupon_8': 'coupon_8.png', 'coupon_10': 'coupon_10.png', 'gift_gold': 'gift_gold.png' };
                      // 簡單對應類型到名稱
-                     let nameMap = { 'gift_americano': '美式咖啡兌換卷', 'gift_bogo': '飲品買一送一卷', 'coupon_5': '5% 回饋優惠卷', 'coupon_10': '10% 回饋優惠卷', 'gift_gold': '金賞好禮兌換卷' };
+                     let nameMap = { 'gift_americano': '美式咖啡兌換卷', 'gift_bogo': '飲品買一送一卷', 'coupon_5': '5% 回饋優惠卷', 'coupon_8': '8% 回饋優惠卷', 'coupon_10': '10% 回饋優惠卷', 'gift_gold': '金賞好禮兌換卷' };
                      // 對應類型到 term key
-                     let typeMap = { 'gift_americano': 'americano', 'gift_bogo': 'bogo', 'coupon_5': 'rebate', 'coupon_10': 'rebate', 'gift_gold': 'gold' };
+                     let typeMap = { 'gift_americano': 'americano', 'gift_bogo': 'bogo', 'coupon_5': 'rebate', 'coupon_8': 'rebate', 'coupon_10': 'rebate', 'gift_gold': 'gold' };
                      
+                     if (c.type.startsWith('other:')) {
+                         const customName = c.type.split(':')[1];
+                         return {
+                             id: c.id,
+                             name: customName,
+                             desc: '專屬派發',
+                             img: CUSTOM_COUPON_IMG,
+                             type: 'other', 
+                             isExtra: true
+                         };
+                     }
+
                      return {
                          id: c.id,
                          name: nameMap[c.type] || '專屬優惠卷',
@@ -933,11 +959,11 @@
                 if (!input) { alert('請輸入電話號碼或員編'); return; }
 
                 if (admins[input]) {
-                    currentAdminId = input; // 紀錄管理員ID
+                    currentAdminId = input; 
                     showPage(document.getElementById('admin-home-page'));
                     updateGreeting('admin-time-greeting', 'admin-id-greeting', admins[input]);
                     document.getElementById('lookup-results').classList.add('hidden');
-                    // 檢查是否顯示派發按鈕
+                    
                     const sendBtn = document.getElementById('admin-send-coupon-btn');
                     if(sendBtn) {
                         if (CAN_SEND_COUPON_ADMINS.includes(input)) sendBtn.style.display = 'inline-block';
@@ -1009,11 +1035,6 @@
             function fetchCouponData() {
                  if (!currentCustomerPhone) return;
                  console.log("Fetching coupon data...");
-                 // 改為呼叫新API (若後端未更新，需兼容舊版)
-                 // 先嘗試使用 getUsedCoupons，若後端已更新支援 getCustomerCoupons 更好，但為求穩定先用擴充邏輯
-                 // 我們假設後端 getUsedCoupons 會回傳 { status:'success', data: [usedIDs], extra: [extraCoupons] }
-                 // 或者我們分兩次呼叫? 為了效能最好一次。
-                 // 這裡我們沿用 getUsedCoupons 但期望後端會給 extra 欄位 (需更新後端)
                  
                  fetch(`${SCRIPT_URL}?action=getUsedCoupons&phone=${currentCustomerPhone}`)
                  .then(r => r.json())
@@ -1031,9 +1052,16 @@
             // ★★★ 新增：管理員派發邏輯 ★★★
             function handleAdminSendCoupon() {
                 const phone = document.getElementById('send-coupon-phone').value.trim();
-                const type = document.getElementById('send-coupon-type').value;
+                const typeSelect = document.getElementById('send-coupon-type');
+                let type = typeSelect.value;
                 const qty = parseInt(document.getElementById('send-coupon-qty').value);
                 
+                if (type === 'other') {
+                    const customName = document.getElementById('send-coupon-custom-name').value.trim();
+                    if (!customName) { alert('請輸入優惠卷名稱'); return; }
+                    type = `other:${customName}`;
+                }
+
                 if (!phone || !/^\d{10}$/.test(phone)) { alert('請輸入正確電話'); return; }
                 if (!type) { alert('請選擇優惠卷類型'); return; }
                 if (!qty || qty < 1) { alert('請輸入數量'); return; }
@@ -1393,7 +1421,17 @@
                     document.getElementById('send-coupon-phone').value = '';
                     document.getElementById('send-coupon-type').value = '';
                     document.getElementById('send-coupon-qty').value = '1';
+                    // 顯示/隱藏自訂欄位
+                    document.getElementById('custom-coupon-name-group').classList.add('hidden');
                     openModal(document.getElementById('admin-send-coupon-modal'));
+                });
+                
+                // 綁定下拉選單變更事件
+                const typeSelect = document.getElementById('send-coupon-type');
+                if(typeSelect) typeSelect.addEventListener('change', (e) => {
+                    const customGroup = document.getElementById('custom-coupon-name-group');
+                    if(e.target.value === 'other') customGroup.classList.remove('hidden');
+                    else customGroup.classList.add('hidden');
                 });
                 
                 document.getElementById('admin-voucher-history-btn').addEventListener('click', () => {
