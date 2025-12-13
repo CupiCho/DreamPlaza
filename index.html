@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.04.37
-    Last Updated: 2025/01/07 (Fix Login Redirect for Non-members & Restore Missing Variables)
+    Current Version: v25.04.38
+    Last Updated: 2025/01/07 (Fix Admin Lookup Logic for Non-members)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -334,7 +334,7 @@
         <linearGradient id="grad-bronze" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:#B87333; stop-opacity:1" />
           <stop offset="40%" style="stop-color:#E8A87C; stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#8B4513; stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#B8860B; stop-opacity:1" />
         </linearGradient>
         <linearGradient id="grad-silver" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:#A9A9A9; stop-opacity:1" />
@@ -351,7 +351,7 @@
 
     <div id="root-container">
         <div id="login-page">
-            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.37</div></div>
+            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.38</div></div>
         </div>
         <div id="customer-home-page" class="hidden">
             <div class="customer-container">
@@ -395,7 +395,7 @@
                     <p class="info-main-data"><span id="voucher-balance">0</span><span class="small-text">杯</span></p>
                     <div class="action-buttons-group"><button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button></div>
                 </div>
-                <div class="version-info">v25.04.37</div>
+                <div class="version-info">v25.04.38</div>
             </div>
         </div>
         
@@ -591,7 +591,7 @@
             // =============================================================
             // 2. 變數與常數宣告 (Variables & Constants) - 放在最上面
             // =============================================================
-            const APP_VERSION = 'v25.04.37';
+            const APP_VERSION = 'v25.04.38';
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec";
 
             const admins = {
@@ -791,9 +791,9 @@
                  if(!currentCustomerPhone) return;
                  const p = currentAnnualPoints;
                  let levelName = '可可白賞'; let progressPercent = 0; let nextInfoText = ''; let levelColor = '#4a2c2a';
-                 if (p < LEVEL_THRESHOLDS.LV1) { levelColor = '#9E9E9E'; progressPercent = (p / LEVEL_THRESHOLDS.LV1) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV1 - p} 點晉升 可可銅賞`; } 
-                 else if (p < LEVEL_THRESHOLDS.LV2) { levelColor = '#CD7F32'; levelName = '可可銅賞'; progressPercent = ((p - LEVEL_THRESHOLDS.LV1) / (LEVEL_THRESHOLDS.LV2 - LEVEL_THRESHOLDS.LV1)) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV2 - p} 點晉升 可可銀賞`; }
-                 else if (p < LEVEL_THRESHOLDS.LV3) { levelColor = '#7F7F7F'; levelName = '可可銀賞'; progressPercent = ((p - LEVEL_THRESHOLDS.LV2) / (LEVEL_THRESHOLDS.LV3 - LEVEL_THRESHOLDS.LV2)) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV3 - p} 點晉升 可可金賞`; }
+                 if (p < LEVEL_THRESHOLDS.LV1) { levelColor = '#9E9E9E'; progressPercent = (p / LEVEL_THRESHOLDS.LV1) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV1 - p} 點晉升 Lv.1`; } 
+                 else if (p < LEVEL_THRESHOLDS.LV2) { levelColor = '#CD7F32'; levelName = '可可銅賞'; progressPercent = ((p - LEVEL_THRESHOLDS.LV1) / (LEVEL_THRESHOLDS.LV2 - LEVEL_THRESHOLDS.LV1)) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV2 - p} 點晉升 Lv.2`; }
+                 else if (p < LEVEL_THRESHOLDS.LV3) { levelColor = '#7F7F7F'; levelName = '可可銀賞'; progressPercent = ((p - LEVEL_THRESHOLDS.LV2) / (LEVEL_THRESHOLDS.LV3 - LEVEL_THRESHOLDS.LV2)) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV3 - p} 點晉升 Lv.3`; }
                  else { levelColor = '#B8860B'; levelName = '可可金賞'; progressPercent = 100; nextInfoText = '已達最高等級'; }
 
                  document.getElementById('modal-star-icon').innerHTML = getStarHtml(currentLevelIndex);
@@ -1157,6 +1157,7 @@
              
              function closeQRScanner() { if (html5QrCodeScanner) { html5QrCodeScanner.stop().then(() => { document.getElementById('qr-reader-container').classList.add('hidden'); }); } else { document.getElementById('qr-reader-container').classList.add('hidden'); } }
 
+             // ★★★ FIX: Admin Lookup Logic ★★★
              function handleAdminLookup() {
                 const phone = document.getElementById('lookup-phone-input').value.trim();
                 if (!/^\d{10}$/.test(phone)) { alert('電話號碼格式錯誤'); return; }
@@ -1164,11 +1165,20 @@
                 fetch(`${SCRIPT_URL}?action=query&phone=${phone}`).then(r => r.json()).then(result => {
                     hideLoader();
                     if (result.status === 'success') {
-                        searchedPhone = result.data;
-                        document.getElementById('result-points').textContent = result.data.points;
-                        document.getElementById('result-vouchers').textContent = result.data.vouchers;
-                        document.getElementById('lookup-results').classList.remove('hidden');
-                    } else { searchedPhone = null; alert('查無此會員資料。'); }
+                        if (result.found) {
+                            searchedPhone = result.data;
+                            document.getElementById('result-points').textContent = result.data.points;
+                            document.getElementById('result-vouchers').textContent = result.data.vouchers;
+                            document.getElementById('lookup-results').classList.remove('hidden');
+                        } else {
+                            searchedPhone = null;
+                            document.getElementById('lookup-results').classList.add('hidden');
+                            alert('查無此會員資料。'); // Show alert for non-members
+                        }
+                    } else { 
+                        searchedPhone = null; 
+                        alert('系統錯誤: ' + (result.message || '未知')); 
+                    }
                 }).catch(err => { hideLoader(); alert('連線錯誤'); });
              }
 
