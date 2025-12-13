@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.04.13
-    Last Updated: 2025/01/07 (Fix SCRIPT_URL & Modal Close Logic)
+    Current Version: v25.04.31
+    Last Updated: 2025/01/07 (Fix SyntaxError: Removed duplicate variable declarations inside DOMContentLoaded)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -32,6 +32,22 @@
             padding-top: 20px;
             padding-bottom: 20px;
             box-sizing: border-box;
+        }
+
+        /* LINE 瀏覽器提示 */
+        #line-browser-alert {
+            display: none;
+            background-color: #ff9800;
+            color: #fff;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 0.9em;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
         }
 
         /* 頁面容器 */
@@ -193,16 +209,16 @@
         .history-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
         .history-info-group { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
         .history-date { font-size: 0.8em; color: #999; }
-        .history-meta { font-size: 0.75em; color: #ccc; }
+        .history-meta { font-size: 0.85em; color: #888; margin-top: 2px; } /* 調整：顯示員工與訂單資訊的樣式 */
         .history-item-name { font-size: 1.1em; font-weight: bold; color: #4a2c2a; display: flex; align-items: center; gap: 5px; }
         .history-remaining { font-size: 0.85em; color: #27ae60; margin-top: 4px; font-weight: 500; }
         .history-action-group { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; min-width: 80px; }
         .btn-redeem { padding: 8px 15px; font-size: 14px; background-color: #cb9c65; color: #000; border: none; border-radius: 5px; cursor: pointer; flex-shrink: 0; }
         .btn-redeem-card { background-color: #cb9c65; color: #000; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em; transition: background 0.2s; }
         .btn-redeem-card:hover { background-color: #b98b54; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f5f5f5; }
-        .history-info { display: flex; flex-direction: column; }
-        .history-detail { font-size: 1em; color: #333; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #f5f5f5; }
+        .history-info { display: flex; flex-direction: column; align-items: flex-start; flex-grow: 1;} /* 調整對齊 */
+        .history-detail { font-size: 1.1em; color: #333; font-weight: bold; }
 
         .verification-code { font-size: 4em; font-weight: bold; color: #4a2c2a; letter-spacing: 8px; margin: 20px 0; }
         .timer-text { color: #999; font-size: 0.9em; }
@@ -335,7 +351,7 @@
 
     <div id="root-container">
         <div id="login-page">
-            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.13</div></div>
+            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.31</div></div>
         </div>
         <div id="customer-home-page" class="hidden">
             <div class="customer-container">
@@ -379,7 +395,7 @@
                     <p class="info-main-data"><span id="voucher-balance">0</span><span class="small-text">杯</span></p>
                     <div class="action-buttons-group"><button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button></div>
                 </div>
-                <div class="version-info">v25.04.13</div>
+                <div class="version-info">v25.04.31</div>
             </div>
         </div>
         
@@ -567,23 +583,11 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            const savedPhone = localStorage.getItem('cupicho_user_phone');
-            let pendingCouponUseId = null;
-            
-            const APP_VERSION = 'v25.04.13';
-
-            // 1. LINE 瀏覽器強制跳轉
-            if (navigator.userAgent.indexOf("Line") > -1) {
-                if (location.href.indexOf("openExternalBrowser=1") === -1) {
-                    var newUrl = location.href + (location.href.indexOf('?') > -1 ? '&' : '?') + 'openExternalBrowser=1';
-                    window.location.href = newUrl;
-                }
-            }
-
-            // 請確認此處 SCRIPT_URL 為您正確的後端部署網址 (需包含 exec 結尾)
+            // =============================================================
+            // 1. 變數與常數宣告 (Variables & Constants)
+            // =============================================================
+            const APP_VERSION = 'v25.04.31';
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec";
-
-            let globalUsedCoupons = []; 
 
             const admins = {
                 '10427091': '7091 Arno', '10431118': '1118 Carol', '10416377': '6377 Eric',
@@ -598,124 +602,9 @@
                 { cost: 10, name: "精品禮盒", image: "item_10pt.png" }
             ];
 
-            const LEVEL_THRESHOLDS = {
-                LV1: 10,
-                LV2: 20,
-                LV3: 40
-            };
+            const LEVEL_THRESHOLDS = { LV1: 10, LV2: 20, LV3: 40 };
 
-            let currentCustomerPhone = null;
-            let currentCustomerInfo = {};
-            let searchedPhone = null;
-            let verificationCode = null;
-            let countdownTimer = null;
-            let pollingInterval = null;
-            let pendingAddVoucherData = null;
-            let pendingPointRedeemItem = null; 
-            let currentAnnualPoints = 0; 
-            let currentLevelIndex = 0;
-
-            // ★★★ 通用 Modal 關閉邏輯 (修復註冊頁面無法關閉) ★★★
-            document.querySelectorAll('.modal-overlay').forEach(modal => {
-                modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal); });
-                // 嘗試抓取內部的 close-button
-                const closeBtn = modal.querySelector('.close-button');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', () => closeModal(modal));
-                }
-            });
-
-            // ★★★ 關鍵修正：確保按鈕事件綁定在最前面執行 ★★★
-            const loginButton = document.getElementById('login-button');
-            const registerButton = document.getElementById('register-button');
-            
-            if (loginButton) { 
-                loginButton.addEventListener('click', () => { 
-                    const inputElement = document.getElementById('login-phone-input'); 
-                    const input = inputElement ? inputElement.value.trim() : ''; 
-                    if (!input) { alert('請輸入電話號碼或員編'); return; } 
-                    
-                    if (admins[input]) { 
-                        window.showPage(document.getElementById('admin-home-page')); 
-                        updateGreeting('admin-time-greeting', 'admin-id-greeting', admins[input]); 
-                        const results = document.getElementById('lookup-results'); 
-                        if (results) results.classList.add('hidden'); 
-                        return; 
-                    } 
-                    
-                    if (!/^\d{10}$/.test(input)) { alert('電話號碼格式錯誤'); return; } 
-                    
-                    showLoader(); 
-                    fetch(`${SCRIPT_URL}?action=query&phone=${input}`) 
-                        .then(r => r.json()) 
-                        .then(result => { 
-                            hideLoader(); 
-                            if (result.status === 'success') { 
-                                localStorage.setItem('cupicho_user_phone', result.data.phone);
-
-                                currentCustomerPhone = result.data.phone; 
-                                currentCustomerInfo = { lastName: result.data.lastName, title: result.data.title }; 
-                                window.showPage(document.getElementById('customer-home-page')); 
-                                updateGreeting('customer-time-greeting', 'customer-name-greeting', result.data.lastName + result.data.title); 
-                                const pointsEl = document.getElementById('points-balance'); 
-                                if(pointsEl) pointsEl.textContent = result.data.points; 
-                                
-                                updateMemberLevelUI(result.data.annualPoints);
-
-                                const voucherEl = document.getElementById('voucher-balance'); 
-                                if(voucherEl) voucherEl.textContent = result.data.vouchers; 
-
-                                fetchUsedCoupons();
-
-                            } else { 
-                                const regPhoneEl = document.getElementById('reg-phone'); 
-                                if(regPhoneEl) regPhoneEl.value = input; 
-                                openModal(document.getElementById('register-modal')); 
-                            } 
-                        }) 
-                        .catch(err => { 
-                            hideLoader(); 
-                            console.error("Login query error:", err); 
-                            alert('🚫 網路或伺服器錯誤'); 
-                        }); 
-                }); 
-            }
-
-            if (registerButton) { 
-                registerButton.addEventListener('click', () => { 
-                    const regPhoneEl = document.getElementById('reg-phone'); 
-                    const regLastNameEl = document.getElementById('reg-lastname'); 
-                    const regTitleEl = document.getElementById('reg-title'); 
-                    if(regPhoneEl) regPhoneEl.value = ''; 
-                    if(regLastNameEl) regLastNameEl.value = ''; 
-                    if(regTitleEl) regTitleEl.value='貴賓'; 
-                    openModal(document.getElementById('register-modal')); 
-                }); 
-            }
-
-            // --- Helper Functions ---
-            function openModal(modal) { if (modal) { modal.classList.remove('hidden'); } }
-            function closeModal(modal) { if (modal) { modal.classList.add('hidden'); } }
-            function showLoader() { openModal(document.getElementById('loading-modal')); }
-            function hideLoader() { closeModal(document.getElementById('loading-modal')); }
-
-             function updateGreeting(timeElementId, nameElementId, nameData) { const timeEl = document.getElementById(timeElementId); const h = new Date().getHours(); let greeting = h < 6 ? '您好' : h < 11 ? '早安' : h < 18 ? '午安' : '晚安'; if (timeEl) timeEl.textContent = greeting; if (nameElementId && nameData) { const nameEl = document.getElementById(nameElementId); if (nameEl) nameEl.textContent = nameData; } }
-             function startTimer(displayElement) { let duration = 599; clearInterval(countdownTimer); countdownTimer = setInterval(function () { let minutes = parseInt(duration / 60, 10); let seconds = parseInt(duration % 60, 10); minutes = (minutes < 10) ? "0" + minutes : minutes; seconds = (seconds < 10) ? "0" + seconds : seconds; if (displayElement) displayElement.textContent = minutes + ":" + seconds; if (--duration < 0) { clearInterval(countdownTimer); if(showCodeModal && !showCodeModal.classList.contains('hidden')) { closeModal(showCodeModal); alert('驗證碼已過期！'); } } }, 1000); }
-             function startPollingForRedemption(code) { pollingInterval = setInterval(() => { fetch(`${SCRIPT_URL}?action=checkRedemptionStatus&code=${code}`).then(r => r.json()).then(result => { if (result.status === 'success' && result.redeemed) { clearInterval(pollingInterval); clearInterval(countdownTimer); const showCodeContent = document.getElementById('show-code-content'); const redeemSuccess = document.getElementById('redeem-success-message'); if(showCodeContent) showCodeContent.classList.add('hidden'); if(redeemSuccess) redeemSuccess.classList.remove('hidden'); fetch(`${SCRIPT_URL}?action=query&phone=${currentCustomerPhone}`).then(r=>r.json()).then(res=>{ if(res.status === 'success' && res.found){ const voucherBalanceEl = document.getElementById('voucher-balance'); const pointsBalanceEl = document.getElementById('points-balance'); if(voucherBalanceEl) voucherBalanceEl.textContent = res.data.vouchers; if(pointsBalanceEl) pointsBalanceEl.textContent = res.data.points; updateMemberLevelUI(res.data.annualPoints); } }); setTimeout(() => { closeModal(document.getElementById('show-code-modal')); }, 3000); } }).catch(err => { console.error("Polling error:", err); }); }, 3000); }
-
-             function getStarHtml(levelIndex) {
-                 if (levelIndex === 0) return ''; 
-                 let gradientId = '';
-                 if (levelIndex === 1) gradientId = 'grad-bronze';
-                 if (levelIndex === 2) gradientId = 'grad-silver';
-                 if (levelIndex === 3) gradientId = 'grad-gold';
-                 const starSvg = `<svg class="star-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="url(#${gradientId})" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
-                 let starsHtml = '';
-                 for (let i = 0; i < levelIndex; i++) { starsHtml += starSvg; }
-                 return starsHtml;
-             }
-
-             const couponTerms = {
+            const couponTerms = {
                  'americano': [
                      '晉升禮之飲品兌換限精品美式，不限內用/外帶，冰/熱不拘。',
                      '會員晉升禮兌換卷圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。',
@@ -742,66 +631,169 @@
                  ]
              };
 
-             function getCouponsForLevel(levelIdx) {
-                 const coupons = [];
-                 const imgMap = { '5%': 'coupon_5.png', '8%': 'coupon_8.png', '10%': 'coupon_10.png', 'americano': 'gift_americano.png', 'bogo': 'gift_bogo.png', 'gold': 'gift_gold.png' };
+            // State Variables
+            let currentCustomerPhone = null;
+            let currentCustomerInfo = {};
+            let searchedPhone = null;
+            let verificationCode = null;
+            let countdownTimer = null;
+            let pollingInterval = null;
+            let pendingAddVoucherData = null;
+            let pendingPointRedeemItem = null; 
+            let pendingCouponUseId = null;
+            let currentAnnualPoints = 0; 
+            let currentLevelIndex = 0; 
+            let globalUsedCoupons = []; 
+            let html5QrCodeScanner = null;
+            const savedPhone = localStorage.getItem('cupicho_user_phone');
 
-                 if (levelIdx === 1) { // 銅賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'bronze_amer', type: 'americano' });
-                    coupons.push({ name: '5% 回饋優惠卷', qty: 1, desc: '消費回饋', img: imgMap['5%'], baseId: 'bronze_5', type: 'rebate' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 1, desc: '有福同享', img: imgMap['bogo'], baseId: 'bronze_bogo', type: 'bogo' });
-                 }
-                 else if (levelIdx === 2) { // 銀賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'silver_amer', type: 'americano' });
-                    coupons.push({ name: '8% 回饋優惠卷', qty: 2, desc: '消費回饋', img: imgMap['8%'], baseId: 'silver_8', type: 'rebate' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 2, desc: '有福同享', img: imgMap['bogo'], baseId: 'silver_bogo', type: 'bogo' });
-                 }
-                 else if (levelIdx === 3) { // 金賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'gold_amer', type: 'americano' });
-                    coupons.push({ name: '10% 回饋優惠卷', qty: 3, desc: '消費回饋', img: imgMap['10%'], baseId: 'gold_10', type: 'rebate' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 3, desc: '有福同享', img: imgMap['bogo'], baseId: 'gold_bogo', type: 'bogo' });
-                    coupons.push({ name: '金賞好禮兌換卷', qty: 3, desc: '專屬好禮', img: imgMap['gold'], baseId: 'gold_gift', type: 'gold' });
-                 }
-                 return coupons;
+
+            // =============================================================
+            // 2. 函式定義 (Function Definitions - Hoisted)
+            // =============================================================
+
+            // --- Helper Functions ---
+            function openModal(modal) { if (modal) { modal.classList.remove('hidden'); } }
+            function closeModal(modal) { if (modal) { modal.classList.add('hidden'); } }
+            function showLoader() { openModal(document.getElementById('loading-modal')); }
+            function hideLoader() { closeModal(document.getElementById('loading-modal')); }
+
+            function updateGreeting(timeId, nameId, nameText) { 
+                const timeEl = document.getElementById(timeId); 
+                const h = new Date().getHours(); 
+                let greeting = h < 6 ? '您好' : h < 11 ? '早安' : h < 18 ? '午安' : '晚安'; 
+                if (timeEl) timeEl.textContent = greeting; 
+                if (nameId && nameText) document.getElementById(nameId).textContent = nameText; 
+            }
+
+            function startTimer(displayElement) { 
+                let duration = 599; 
+                clearInterval(countdownTimer); 
+                countdownTimer = setInterval(function () { 
+                    let minutes = parseInt(duration / 60, 10); 
+                    let seconds = parseInt(duration % 60, 10); 
+                    minutes = (minutes < 10) ? "0" + minutes : minutes; 
+                    seconds = (seconds < 10) ? "0" + seconds : seconds; 
+                    if (displayElement) displayElement.textContent = minutes + ":" + seconds; 
+                    if (--duration < 0) { 
+                        clearInterval(countdownTimer); 
+                        if(document.getElementById('show-code-modal') && !document.getElementById('show-code-modal').classList.contains('hidden')) { 
+                            closeModal(document.getElementById('show-code-modal')); alert('驗證碼已過期！'); 
+                        } 
+                    } 
+                }, 1000); 
+            }
+            
+            function startPollingForRedemption(code) { 
+                 pollingInterval = setInterval(() => { 
+                     fetch(`${SCRIPT_URL}?action=checkRedemptionStatus&code=${code}`)
+                     .then(r => r.json())
+                     .then(result => { 
+                         if (result.status === 'success' && result.redeemed) { 
+                             clearInterval(pollingInterval); clearInterval(countdownTimer); 
+                             const showCodeContent = document.getElementById('show-code-content'); 
+                             const redeemSuccess = document.getElementById('redeem-success-message'); 
+                             if(showCodeContent) showCodeContent.classList.add('hidden'); 
+                             if(redeemSuccess) redeemSuccess.classList.remove('hidden'); 
+                             
+                             fetch(`${SCRIPT_URL}?action=query&phone=${currentCustomerPhone}`).then(r=>r.json()).then(res=>{ 
+                                 if(res.status === 'success' && res.found){ 
+                                     const voucherBalanceEl = document.getElementById('voucher-balance'); 
+                                     const pointsBalanceEl = document.getElementById('points-balance'); 
+                                     if(voucherBalanceEl) voucherBalanceEl.textContent = res.data.vouchers; 
+                                     if(pointsBalanceEl) pointsBalanceEl.textContent = res.data.points; 
+                                     updateMemberLevelUI(res.data.annualPoints); 
+                                 } 
+                             }); 
+                             setTimeout(() => { closeModal(document.getElementById('show-code-modal')); }, 3000); 
+                         } 
+                     }).catch(err => { console.error("Polling error:", err); }); 
+                 }, 3000); 
              }
 
-             function getUnusedCouponCount(levelIdx) {
+            function getStarHtml(levelIndex) {
+                 if (levelIndex === 0) return ''; 
+                 let gradientId = '';
+                 if (levelIndex === 1) gradientId = 'grad-bronze';
+                 if (levelIndex === 2) gradientId = 'grad-silver';
+                 if (levelIndex === 3) gradientId = 'grad-gold';
+                 const starSvg = `<svg class="star-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="url(#${gradientId})" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+                 let starsHtml = '';
+                 for (let i = 0; i < levelIndex; i++) { starsHtml += starSvg; }
+                 return starsHtml;
+            }
+
+            function getCouponsForLevel(levelIdx) {
+                 const coupons = [];
+                 const imgMap = { '5%': 'coupon_5.png', '8%': 'coupon_8.png', '10%': 'coupon_10.png', 'americano': 'gift_americano.png', 'bogo': 'gift_bogo.png', 'gold': 'gift_gold.png' };
+                 if (levelIdx === 1) { coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'bronze_amer', type: 'americano' }); coupons.push({ name: '5% 回饋優惠卷', qty: 1, desc: '消費回饋', img: imgMap['5%'], baseId: 'bronze_5', type: 'rebate' }); coupons.push({ name: '飲品買一送一卷', qty: 1, desc: '有福同享', img: imgMap['bogo'], baseId: 'bronze_bogo', type: 'bogo' }); }
+                 else if (levelIdx === 2) { coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'silver_amer', type: 'americano' }); coupons.push({ name: '8% 回饋優惠卷', qty: 2, desc: '消費回饋', img: imgMap['8%'], baseId: 'silver_8', type: 'rebate' }); coupons.push({ name: '飲品買一送一卷', qty: 2, desc: '有福同享', img: imgMap['bogo'], baseId: 'silver_bogo', type: 'bogo' }); }
+                 else if (levelIdx === 3) { coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'gold_amer', type: 'americano' }); coupons.push({ name: '10% 回饋優惠卷', qty: 3, desc: '消費回饋', img: imgMap['10%'], baseId: 'gold_10', type: 'rebate' }); coupons.push({ name: '飲品買一送一卷', qty: 3, desc: '有福同享', img: imgMap['bogo'], baseId: 'gold_bogo', type: 'bogo' }); coupons.push({ name: '金賞好禮兌換卷', qty: 3, desc: '專屬好禮', img: imgMap['gold'], baseId: 'gold_gift', type: 'gold' }); }
+                 return coupons;
+            }
+
+            function getUnusedCouponCount(levelIdx) {
                  const coupons = getCouponsForLevel(levelIdx);
                  let count = 0;
                  coupons.forEach(group => {
                      for(let i=0; i<group.qty; i++) {
-                         const uniqueId = `${group.baseId}_${i}`;
-                         // 檢查是否在雲端已使用列表中
-                         if (!globalUsedCoupons.includes(uniqueId)) {
-                             count++;
-                         }
+                         if (!globalUsedCoupons.includes(`${group.baseId}_${i}`)) count++;
                      }
                  });
                  return count;
-             }
-             
-             // 從雲端抓取已使用優惠卷列表
-             function fetchUsedCoupons() {
-                 if (!currentCustomerPhone) return;
-                 console.log("Fetching used coupons...");
-                 fetch(`${SCRIPT_URL}?action=getUsedCoupons&phone=${currentCustomerPhone}`)
-                 .then(r => r.json())
-                 .then(res => {
-                     if (res.status === 'success') {
-                         globalUsedCoupons = res.data; // 更新全域變數
-                         console.log("Used coupons fetched:", globalUsedCoupons);
-                         updateMemberLevelUI(currentAnnualPoints);
-                     }
-                 })
-                 .catch(err => console.error("Fetch coupons error:", err));
-             }
+            }
 
-             window.openCouponsModal = function() {
+            function updateMemberLevelUI(points) {
+                 const levelCard = document.getElementById('member-status-card');
+                 if (!levelCard) return; 
+                 const p = parseInt(points) || 0;
+                 currentAnnualPoints = p;
+                 let levelClass = 'lv0-style', levelName = '可可白賞', nextName = '可可銅賞', progressPercent = 0, pointsNeeded = 0;
+                 if (p < LEVEL_THRESHOLDS.LV1) { currentLevelIndex = 0; pointsNeeded = LEVEL_THRESHOLDS.LV1 - p; progressPercent = (p / LEVEL_THRESHOLDS.LV1) * 100; }
+                 else if (p < LEVEL_THRESHOLDS.LV2) { currentLevelIndex = 1; levelClass = 'lv1-style'; levelName = '可可銅賞'; nextName = '可可銀賞'; pointsNeeded = LEVEL_THRESHOLDS.LV2 - p; progressPercent = ((p - LEVEL_THRESHOLDS.LV1) / (LEVEL_THRESHOLDS.LV2 - LEVEL_THRESHOLDS.LV1)) * 100; }
+                 else if (p < LEVEL_THRESHOLDS.LV3) { currentLevelIndex = 2; levelClass = 'lv2-style'; levelName = '可可銀賞'; nextName = '可可金賞'; pointsNeeded = LEVEL_THRESHOLDS.LV3 - p; progressPercent = ((p - LEVEL_THRESHOLDS.LV2) / (LEVEL_THRESHOLDS.LV3 - LEVEL_THRESHOLDS.LV2)) * 100; }
+                 else { currentLevelIndex = 3; levelClass = 'lv3-style'; levelName = '可可金賞'; nextName = '最高等級'; pointsNeeded = 0; progressPercent = 100; }
+
+                 document.getElementById('modal-coupon-count').textContent = getUnusedCouponCount(currentLevelIndex);
+                 levelCard.className = `member-status-card ${levelClass}`;
+                 document.getElementById('member-card-stars').innerHTML = getStarHtml(currentLevelIndex);
+                 document.getElementById('current-level-name').textContent = levelName;
+                 document.getElementById('current-level-name').className = `level-title current-level-text text-${levelClass.split('-')[0]}`;
+                 document.getElementById('next-level-name').textContent = `下一等級：${nextName}`;
+                 let nextClass = 'text-lv0'; if(levelClass === 'lv0-style') nextClass = 'text-lv1'; else if(levelClass === 'lv1-style') nextClass = 'text-lv2'; else if(levelClass === 'lv2-style') nextClass = 'text-lv3'; else nextClass = 'text-lv3';
+                 document.getElementById('next-level-name').className = `next-level-text ${nextClass}`;
+                 document.getElementById('level-progress-bar').style.width = `${progressPercent}%`;
+                 let fillColor = '#DCDCDC'; if (levelClass === 'lv1-style') fillColor = '#B76E79'; if (levelClass === 'lv2-style') fillColor = '#E5E4E2'; if (levelClass === 'lv3-style') fillColor = '#FFD700';
+                 document.getElementById('level-progress-bar').style.backgroundColor = fillColor;
+                 document.getElementById('level-tooltip').textContent = pointsNeeded > 0 ? `差 ${pointsNeeded} 點晉升` : `已達最高等級`;
+            }
+
+            // --- Window Exposed Functions for HTML onclick ---
+            window.openMemberDetailModal = function() {
+                 if(!currentCustomerPhone) return;
+                 const p = currentAnnualPoints;
+                 let levelName = '可可白賞'; let progressPercent = 0; let nextInfoText = ''; let levelColor = '#4a2c2a';
+                 if (p < LEVEL_THRESHOLDS.LV1) { levelColor = '#9E9E9E'; progressPercent = (p / LEVEL_THRESHOLDS.LV1) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV1 - p} 點晉升 可可銅賞`; } 
+                 else if (p < LEVEL_THRESHOLDS.LV2) { levelColor = '#CD7F32'; levelName = '可可銅賞'; progressPercent = ((p - LEVEL_THRESHOLDS.LV1) / (LEVEL_THRESHOLDS.LV2 - LEVEL_THRESHOLDS.LV1)) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV2 - p} 點晉升 可可銀賞`; }
+                 else if (p < LEVEL_THRESHOLDS.LV3) { levelColor = '#7F7F7F'; levelName = '可可銀賞'; progressPercent = ((p - LEVEL_THRESHOLDS.LV2) / (LEVEL_THRESHOLDS.LV3 - LEVEL_THRESHOLDS.LV2)) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV3 - p} 點晉升 可可金賞`; }
+                 else { levelColor = '#B8860B'; levelName = '可可金賞'; progressPercent = 100; nextInfoText = '已達最高等級'; }
+
+                 document.getElementById('modal-star-icon').innerHTML = getStarHtml(currentLevelIndex);
+                 document.getElementById('modal-level-name').textContent = levelName;
+                 document.getElementById('modal-level-name').style.color = levelColor;
+                 document.getElementById('modal-progress-fill').style.width = `${progressPercent}%`;
+                 document.getElementById('modal-progress-fill').style.backgroundColor = levelColor;
+                 document.getElementById('modal-next-info').textContent = nextInfoText;
+                 document.getElementById('modal-annual-value').textContent = p;
+                 document.getElementById('modal-coupon-count').textContent = getUnusedCouponCount(currentLevelIndex);
+                 openModal(document.getElementById('member-detail-modal'));
+             };
+
+            window.openCouponsModal = function() {
                  if(!currentCustomerPhone) return;
                  const coupons = getCouponsForLevel(currentLevelIndex);
                  const listContainer = document.getElementById('coupons-list-container');
                  listContainer.innerHTML = '';
-                 
                  let hasAnyCoupon = false;
 
                  if(coupons.length === 0) {
@@ -812,34 +804,19 @@
                              hasAnyCoupon = true;
                              const uniqueId = `${couponGroup.baseId}_${i}`;
                              const isUsed = globalUsedCoupons.includes(uniqueId);
-                             
                              const div = document.createElement('div');
                              div.className = 'coupon-item';
-                             
                              const btnText = isUsed ? '已使用' : '使用';
                              const btnClass = isUsed ? 'btn-use-coupon disabled' : 'btn-use-coupon';
                              const disabledAttr = isUsed ? 'disabled' : '';
                              const styleAttr = isUsed ? 'background-color:#ccc; cursor:default;' : '';
 
-                             div.innerHTML = `
-                                <div class="coupon-img-container">
-                                    <img src="${couponGroup.img}" alt="${couponGroup.name}" class="coupon-img">
-                                </div>
-                                <div class="coupon-details">
-                                    <span class="coupon-name">${couponGroup.name}</span>
-                                    <span class="coupon-desc">${couponGroup.desc}</span>
-                                </div>
-                                <div class="coupon-action">
-                                    <button class="${btnClass}" ${disabledAttr} style="${styleAttr}" data-id="${uniqueId}" data-name="${couponGroup.name}" data-img="${couponGroup.img}" data-type="${couponGroup.type}">${btnText}</button>
-                                </div>
-                             `;
+                             div.innerHTML = `<div class="coupon-img-container"><img src="${couponGroup.img}" class="coupon-img"></div><div class="coupon-details"><span class="coupon-name">${couponGroup.name}</span><span class="coupon-desc">${couponGroup.desc}</span></div><div class="coupon-action"><button class="${btnClass}" ${disabledAttr} style="${styleAttr}" data-id="${uniqueId}" data-name="${couponGroup.name}" data-img="${couponGroup.img}" data-type="${couponGroup.type}">${btnText}</button></div>`;
                              listContainer.appendChild(div);
                          }
                      });
                      
-                     if (!hasAnyCoupon) {
-                        listContainer.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">目前沒有可用的優惠卷</p>';
-                     }
+                     if (!hasAnyCoupon) { listContainer.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">目前沒有可用的優惠卷</p>'; }
 
                      listContainer.querySelectorAll('.btn-use-coupon:not(:disabled)').forEach(btn => {
                          btn.addEventListener('click', (e) => {
@@ -860,9 +837,7 @@
                                      termsHtml += `<li>${term}</li>`;
                                  }
                              });
-                             termsHtml += '</ul>';
-                             termsContainer.innerHTML = termsHtml;
-                             
+                             document.getElementById('confirm-coupon-terms').innerHTML = termsHtml + '</ul>';
                              closeModal(document.getElementById('my-coupons-modal'));
                              openModal(document.getElementById('coupon-confirm-modal'));
                          });
@@ -871,332 +846,471 @@
                  openModal(document.getElementById('my-coupons-modal'));
              };
 
-             const confirmUseBtn = document.getElementById('confirm-use-coupon-btn');
-             if (confirmUseBtn) {
-                 confirmUseBtn.addEventListener('click', () => {
-                     closeModal(document.getElementById('coupon-confirm-modal'));
-                     document.getElementById('staff-code-input').value = ''; 
-                     openModal(document.getElementById('staff-verify-modal'));
-                 });
-             }
-             
-             const verifyBtn = document.getElementById('verify-staff-code-btn');
-             if (verifyBtn) {
-                 verifyBtn.addEventListener('click', () => {
-                     const inputCode = document.getElementById('staff-code-input').value;
-                     if (inputCode === '287719') {
-                         if (pendingCouponUseId) {
-                             showLoader(); 
-                             
-                             const payload = {
-                                 action: 'redeemCoupon',
-                                 phone: currentCustomerPhone,
-                                 couponId: pendingCouponUseId,
-                                 title: '優惠卷核銷'
-                             };
-                             
-                             fetch(SCRIPT_URL, {
-                                 method: 'POST',
-                                 body: JSON.stringify(payload)
-                             })
-                             .then(r => r.json())
-                             .then(res => {
-                                 hideLoader();
-                                 if (res.status === 'success') {
-                                     globalUsedCoupons.push(pendingCouponUseId);
-                                     
-                                     alert('核銷成功！');
-                                     closeModal(document.getElementById('staff-verify-modal'));
-                                     pendingCouponUseId = null;
-                                     
-                                     updateMemberLevelUI(currentAnnualPoints);
-                                     openCouponsModal(); 
-                                 } else {
-                                     alert('核銷失敗，請稍後再試');
-                                 }
-                             })
-                             .catch(err => {
-                                 hideLoader();
-                                 console.error("Redeem error:", err);
-                                 alert('連線錯誤，請檢查網路');
-                             });
-                         }
-                     } else {
-                         alert('核銷碼錯誤，請重新輸入');
-                     }
-                 });
-             }
-             
-             const cancelUseBtn = document.getElementById('cancel-use-coupon-btn');
-             if (cancelUseBtn) {
-                 cancelUseBtn.addEventListener('click', () => {
-                     closeModal(document.getElementById('coupon-confirm-modal'));
-                     openCouponsModal();
-                 });
-             }
 
-             function updateMemberLevelUI(points) {
-                 // 重新抓取，確保安全
-                 const levelCard = document.getElementById('member-status-card');
-                 if (!levelCard) return; 
-                 
-                 const levelTitle = document.getElementById('current-level-name');
-                 const nextLevelTitle = document.getElementById('next-level-name');
-                 const progressBar = document.getElementById('level-progress-bar');
-                 const progressTooltip = document.getElementById('level-tooltip');
+            // --- Logic Functions ---
+            function handleLogin() {
+                const inputElement = document.getElementById('login-phone-input');
+                const input = inputElement ? inputElement.value.trim() : '';
+                if (!input) { alert('請輸入電話號碼或員編'); return; }
 
-                 const p = parseInt(points) || 0;
-                 currentAnnualPoints = p;
+                if (admins[input]) {
+                    showPage(document.getElementById('admin-home-page'));
+                    updateGreeting('admin-time-greeting', 'admin-id-greeting', admins[input]);
+                    document.getElementById('lookup-results').classList.add('hidden');
+                    return;
+                }
 
-                 let levelClass = 'lv0-style';
-                 let levelName = '可可白賞';
-                 let nextName = '可可銅賞';
-                 let progressPercent = 0;
-                 let pointsNeeded = 0;
-                 
-                 if (p < LEVEL_THRESHOLDS.LV1) {
-                     currentLevelIndex = 0;
-                     levelClass = 'lv0-style'; levelName = '可可白賞'; nextName = '可可銅賞';
-                     pointsNeeded = LEVEL_THRESHOLDS.LV1 - p;
-                     progressPercent = (p / LEVEL_THRESHOLDS.LV1) * 100;
-                 } else if (p < LEVEL_THRESHOLDS.LV2) {
-                     currentLevelIndex = 1;
-                     levelClass = 'lv1-style'; levelName = '可可銅賞'; nextName = '可可銀賞';
-                     pointsNeeded = LEVEL_THRESHOLDS.LV2 - p;
-                     progressPercent = ((p - LEVEL_THRESHOLDS.LV1) / (LEVEL_THRESHOLDS.LV2 - LEVEL_THRESHOLDS.LV1)) * 100;
-                 } else if (p < LEVEL_THRESHOLDS.LV3) {
-                     currentLevelIndex = 2;
-                     levelClass = 'lv2-style'; levelName = '可可銀賞'; nextName = '可可金賞';
-                     pointsNeeded = LEVEL_THRESHOLDS.LV3 - p;
-                     progressPercent = ((p - LEVEL_THRESHOLDS.LV2) / (LEVEL_THRESHOLDS.LV3 - LEVEL_THRESHOLDS.LV2)) * 100;
-                 } else {
-                     currentLevelIndex = 3;
-                     levelClass = 'lv3-style'; levelName = '可可金賞'; nextName = '最高等級';
-                     pointsNeeded = 0; progressPercent = 100;
-                 }
+                if (!/^\d{10}$/.test(input)) { alert('電話號碼格式錯誤'); return; }
 
-                 const totalUnusedCoupons = getUnusedCouponCount(currentLevelIndex);
-                 const couponCountEl = document.getElementById('modal-coupon-count');
-                 if(couponCountEl) couponCountEl.textContent = totalUnusedCoupons;
+                showLoader();
+                fetch(`${SCRIPT_URL}?action=query&phone=${input}`)
+                    .then(r => r.json())
+                    .then(result => {
+                        hideLoader();
+                        if (result.status === 'success') {
+                            localStorage.setItem('cupicho_user_phone', result.data.phone);
+                            currentCustomerPhone = result.data.phone;
+                            currentCustomerInfo = { lastName: result.data.lastName, title: result.data.title };
+                            showPage(document.getElementById('customer-home-page'));
+                            updateGreeting('customer-time-greeting', 'customer-name-greeting', result.data.lastName + result.data.title);
+                            if(document.getElementById('points-balance')) document.getElementById('points-balance').textContent = result.data.points;
+                            if(document.getElementById('voucher-balance')) document.getElementById('voucher-balance').textContent = result.data.vouchers;
+                            updateMemberLevelUI(result.data.annualPoints);
+                            fetchUsedCoupons(); 
+                        } else {
+                            const regPhoneEl = document.getElementById('reg-phone');
+                            if(regPhoneEl) regPhoneEl.value = input;
+                            openModal(document.getElementById('register-modal'));
+                        }
+                    })
+                    .catch(err => {
+                        hideLoader();
+                        console.error("Login error:", err);
+                        alert('🚫 網路或伺服器錯誤');
+                    });
+            }
 
-                 levelCard.className = `member-status-card ${levelClass}`;
-                 
-                 document.getElementById('member-card-stars').innerHTML = getStarHtml(currentLevelIndex);
+            function handleRegister() {
+                const phone = document.getElementById('reg-phone').value.trim();
+                const lastName = document.getElementById('reg-lastname').value.trim();
+                const title = document.getElementById('reg-title').value;
 
-                 levelTitle.textContent = levelName;
-                 
-                 nextLevelTitle.textContent = `下一等級：${nextName}`;
-                 let nextClass = 'text-lv0';
-                 if(levelClass === 'lv0-style') nextClass = 'text-lv1';
-                 else if(levelClass === 'lv1-style') nextClass = 'text-lv2';
-                 else if(levelClass === 'lv2-style') nextClass = 'text-lv3';
-                 else nextClass = 'text-lv3';
-                 nextLevelTitle.className = `next-level-text ${nextClass}`;
+                if (!/^\d{10}$/.test(phone)) { alert('電話號碼格式錯誤'); return; }
+                if (!lastName) { alert('請輸入姓氏'); return; }
 
-                 progressBar.style.width = `${progressPercent}%`;
-                 
-                 let fillColor = '';
-                 if (levelClass === 'lv0-style') fillColor = '#DCDCDC';
-                 else if (levelClass === 'lv1-style') fillColor = '#B76E79';
-                 else if (levelClass === 'lv2-style') fillColor = '#E5E4E2';
-                 else fillColor = '#FFD700';
-                 document.getElementById('level-progress-bar').style.backgroundColor = fillColor;
-                 document.getElementById('level-progress-bar').style.backgroundImage = 'none';
-
-                 if (pointsNeeded > 0) {
-                    progressTooltip.textContent = `差 ${pointsNeeded} 點晉升`;
-                 } else {
-                    progressTooltip.textContent = `已達最高等級`;
-                 }
-             }
-             
-             window.openMemberDetailModal = function() {
-                 if(!currentCustomerPhone) return;
-                 const p = currentAnnualPoints;
-                 let levelColor = '#4a2c2a'; 
-                 let levelName = '可可白賞'; let progressPercent = 0; let nextInfoText = '';
-                 
-                 if (p < LEVEL_THRESHOLDS.LV1) {
-                     levelColor = '#9E9E9E'; levelName = '可可白賞';
-                     progressPercent = (p / LEVEL_THRESHOLDS.LV1) * 100;
-                     nextInfoText = `差 ${LEVEL_THRESHOLDS.LV1 - p} 點晉升 可可銅賞`;
-                 } else if (p < LEVEL_THRESHOLDS.LV2) {
-                     levelColor = '#CD7F32'; levelName = '可可銅賞';
-                     progressPercent = ((p - LEVEL_THRESHOLDS.LV1) / (LEVEL_THRESHOLDS.LV2 - LEVEL_THRESHOLDS.LV1)) * 100;
-                     nextInfoText = `差 ${LEVEL_THRESHOLDS.LV2 - p} 點晉升 可可銀賞`;
-                 } else if (p < LEVEL_THRESHOLDS.LV3) {
-                     levelColor = '#7F7F7F'; levelName = '可可銀賞';
-                     progressPercent = ((p - LEVEL_THRESHOLDS.LV2) / (LEVEL_THRESHOLDS.LV3 - LEVEL_THRESHOLDS.LV2)) * 100;
-                     nextInfoText = `差 ${LEVEL_THRESHOLDS.LV3 - p} 點晉升 可可金賞`;
-                 } else {
-                     levelColor = '#B8860B'; levelName = '可可金賞';
-                     progressPercent = 100; nextInfoText = '已達最高等級';
-                 }
-
-                 document.getElementById('modal-star-icon').innerHTML = getStarHtml(currentLevelIndex);
-
-                 document.getElementById('modal-level-name').textContent = levelName;
-                 document.getElementById('modal-level-name').style.color = levelColor;
-                 
-                 document.getElementById('modal-progress-fill').style.width = `${progressPercent}%`;
-                 document.getElementById('modal-progress-fill').style.backgroundColor = levelColor; 
-                 document.getElementById('modal-next-info').textContent = nextInfoText;
-                 document.getElementById('modal-annual-value').textContent = p;
-                 
-                 const totalUnusedCoupons = getUnusedCouponCount(currentLevelIndex);
-                 const couponCountEl = document.getElementById('modal-coupon-count');
-                 if(couponCountEl) couponCountEl.textContent = totalUnusedCoupons;
-
-                 openModal(document.getElementById('member-detail-modal'));
-             };
-
-             // 綁定事件 - 直接抓取
-             const statusCardEntry = document.getElementById('member-status-card');
-             if (statusCardEntry) {
-                statusCardEntry.addEventListener('click', window.openMemberDetailModal);
-             }
-             
-             // Other event listeners...
-             const adminAddVoucherBtn = document.getElementById('admin-add-voucher-btn');
-             if(adminAddVoucherBtn) {
-                 adminAddVoucherBtn.addEventListener('click', () => { 
-                     const phoneInputModal = document.getElementById('add-voucher-phone'); 
-                     if (searchedPhone && searchedPhone.phone) { 
-                         if (phoneInputModal) phoneInputModal.value = searchedPhone.phone; 
-                     } else { 
-                         if (phoneInputModal) phoneInputModal.value = ''; 
-                     } 
-                     const itemEl = document.getElementById('add-voucher-item'); 
-                     if(itemEl) itemEl.value = ''; 
-                     document.getElementById('add-voucher-amount').value = '';
-                     document.getElementById('add-voucher-order-id').value = '';
-                     document.getElementById('add-voucher-employee-id').value = '';
-                     openModal(document.getElementById('add-voucher-modal')); 
-                 }); 
-             }
-             
-             const confirmAddVoucherBtn = document.getElementById('confirm-add-voucher-btn');
-             if (confirmAddVoucherBtn) { 
-                 confirmAddVoucherBtn.addEventListener('click', () => { 
-                     const phone = document.getElementById('add-voucher-phone').value.trim();
-                     const item = document.getElementById('add-voucher-item').value;
-                     const amount = document.getElementById('add-voucher-amount').value;
-                     const orderId = document.getElementById('add-voucher-order-id').value.trim();
-                     const employeeId = document.getElementById('add-voucher-employee-id').value;
-                     
-                     if (!/^\d{10}$/.test(phone)) { alert('請輸入正確的10碼會員電話！'); return; } 
-                     if (!item) { alert('請選擇寄杯品項！'); return; } 
-                     if (!amount || parseInt(amount) <= 0) { alert('請輸入有效的新增數量！'); return; } 
-                     if (!orderId || orderId.length !== 8) { alert('請輸入正確的8碼訂單編號！'); return; } 
-                     if (!employeeId) { alert('請輸入員工編號進行認證！'); return; } 
-                     
-                     pendingAddVoucherData = { action: 'addVoucher', phone, item, amount, orderId, employeeId }; 
-                     const detailsEl = document.getElementById('admin-confirm-add-details'); 
-                     if (detailsEl) { 
-                         let customerName = `(${phone})`; 
-                         if (searchedPhone && searchedPhone.phone === phone) { customerName = `${searchedPhone.lastName}${searchedPhone.title} (${phone})`; } 
-                         detailsEl.innerHTML = `<p>會員: <strong>${customerName}</strong></p><p>品項: <strong>${item}</strong></p><p>數量: <strong>${amount} 杯</strong></p><p>訂單編號: <strong>${orderId}</strong></p>`; 
-                     } 
-                     closeModal(document.getElementById('add-voucher-modal')); 
-                     openModal(document.getElementById('admin-confirm-add-modal')); 
-                 }); 
-             }
-
-             const cancelAddBtn = document.getElementById('cancel-add-btn');
-             if(cancelAddBtn) {
-                 cancelAddBtn.addEventListener('click', () => { 
-                     closeModal(document.getElementById('admin-confirm-add-modal')); 
-                     pendingAddVoucherData = null; 
-                 }); 
-             }
-             
-             const finalConfirmAddBtn = document.getElementById('final-confirm-add-btn');
-             if (finalConfirmAddBtn) { 
-                 finalConfirmAddBtn.addEventListener('click', () => { 
-                     if (!pendingAddVoucherData) { alert('發生錯誤，找不到待新增的資料'); closeModal(document.getElementById('admin-confirm-add-modal')); return; } 
-                     showLoader(); 
-                     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(pendingAddVoucherData) })
-                     .then(r => r.json())
-                     .then(result => { 
-                         hideLoader(); 
-                         const currentPhone = pendingAddVoucherData.phone; 
-                         pendingAddVoucherData = null; 
-                         closeModal(document.getElementById('admin-confirm-add-modal')); 
-                         if (result.status === 'success') { 
-                             alert(result.message); 
-                             if (searchedPhone && searchedPhone.phone === currentPhone) { 
-                                 fetch(`${SCRIPT_URL}?action=query&phone=${currentPhone}`)
-                                 .then(r => r.json())
-                                 .then(res => { 
-                                     if (res.status === 'success' && res.found) { 
-                                         const resultVouchersEl = document.getElementById('result-vouchers'); 
-                                         if(resultVouchersEl) resultVouchersEl.textContent = res.data.vouchers; 
-                                     } 
-                                 }); 
-                             } 
-                         } else { alert('⚠️ ' + (result.message || '操作失敗')); } 
-                     }).catch(err => { 
-                         hideLoader(); 
-                         pendingAddVoucherData = null; 
-                         closeModal(document.getElementById('admin-confirm-add-modal')); 
-                         console.error("Final Add voucher error:", err); 
-                         alert('🚫 網路或伺服器錯誤'); 
-                     }); 
-                 }); 
-             }
-
-             const confirmRegButton = document.getElementById('confirm-reg-button');
-             if (confirmRegButton) {
-                 confirmRegButton.addEventListener('click', () => {
-                     const phone = document.getElementById('reg-phone').value.trim();
-                     const lastName = document.getElementById('reg-lastname').value.trim();
-                     const title = document.getElementById('reg-title').value;
-                     
-                     if (!/^\d{10}$/.test(phone)) { alert('電話號碼格式錯誤'); return; }
-                     if (!lastName) { alert('請輸入姓氏'); return; }
-
-                     const regData = { action: 'register', phone, lastName, title };
-                     showLoader();
-                     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(regData) })
-                     .then(r => r.json())
-                     .then(result => {
-                         hideLoader();
-                         if (result.status === 'success') {
-                             alert('✅ 註冊成功！歡迎您！');
-                             localStorage.setItem('cupicho_user_phone', regData.phone);
-                             closeModal(document.getElementById('register-modal'));
-                             
-                             // Auto login after register
-                             currentCustomerPhone = regData.phone;
-                             currentCustomerInfo = { lastName: regData.lastName, title: regData.title };
-                             window.showPage(document.getElementById('customer-home-page'));
-                             updateGreeting('customer-time-greeting', 'customer-name-greeting', regData.lastName + regData.title);
-                             document.getElementById('points-balance').textContent = 0;
-                             document.getElementById('voucher-balance').textContent = 0;
-                             updateMemberLevelUI(0);
-                             
-                         } else { alert('⚠️ ' + (result.message || '註冊失敗')); }
-                     }).catch(err => {
-                         hideLoader();
-                         console.error("Reg error:", err);
-                         alert('🚫 網路或伺服器錯誤');
-                     });
-                 });
-             }
-
-            // ... (Rest of event listeners follow same pattern: check existence then add listener) ...
+                const regData = { action: 'register', phone, lastName, title };
+                showLoader();
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(regData) })
+                    .then(r => r.json())
+                    .then(result => {
+                        hideLoader();
+                        if (result.status === 'success') {
+                            alert('✅ 註冊成功！歡迎您！');
+                            localStorage.setItem('cupicho_user_phone', regData.phone);
+                            closeModal(document.getElementById('register-modal'));
+                            currentCustomerPhone = regData.phone;
+                            currentCustomerInfo = { lastName: regData.lastName, title: regData.title };
+                            showPage(document.getElementById('customer-home-page'));
+                            updateGreeting('customer-time-greeting', 'customer-name-greeting', regData.lastName + regData.title);
+                            document.getElementById('points-balance').textContent = 0;
+                            document.getElementById('voucher-balance').textContent = 0;
+                            updateMemberLevelUI(0);
+                        } else { alert('⚠️ ' + (result.message || '註冊失敗')); }
+                    }).catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); });
+            }
             
-            // ★★ 最後執行：自動登入邏輯 ★★
+            function logout() { localStorage.removeItem('cupicho_user_phone'); window.location.reload(); }
+            
+            function fetchUsedCoupons() {
+                 if (!currentCustomerPhone) return;
+                 console.log("Fetching used coupons...");
+                 fetch(`${SCRIPT_URL}?action=getUsedCoupons&phone=${currentCustomerPhone}`)
+                 .then(r => r.json())
+                 .then(res => {
+                     if (res.status === 'success') {
+                         globalUsedCoupons = res.data; 
+                         console.log("Used coupons fetched:", globalUsedCoupons);
+                         updateMemberLevelUI(currentAnnualPoints);
+                     }
+                 })
+                 .catch(err => console.error("Fetch coupons error:", err));
+            }
+            
+            function fetchAndShowPointsHistory(phone) { 
+                if (!phone) { alert('無法取得會員電話'); return; } 
+                showLoader(); 
+                fetch(`${SCRIPT_URL}?action=getPointsHistory&phone=${phone}`) 
+                .then(r => r.json()) 
+                .then(result => { 
+                    hideLoader(); 
+                    if (result.status === 'success') { 
+                        const contentEl = document.getElementById('points-history-content'); 
+                        contentEl.innerHTML = ''; 
+                        if (result.data.length === 0) { contentEl.innerHTML = '<p style="text-align:center; color:#888;">沒有任何點數紀錄。</p>'; } 
+                        else { 
+                            result.data.forEach(log => { 
+                                const logDate = new Date(log.timestamp).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }); 
+                                const logElement = document.createElement('div'); logElement.className = 'history-item'; 
+                                logElement.innerHTML = ` <div class="history-info"> <span class="history-date">${logDate}</span> <span class="history-detail" style="font-weight:bold; color:#4a2c2a;">${log.item || '未知項目'}</span> <span class="history-detail" style="font-size:0.9em; color:#666;">${log.memo}</span> </div> `; 
+                                contentEl.appendChild(logElement); 
+                            }); 
+                        } 
+                        openModal(document.getElementById('points-history-modal')); 
+                    } else { alert('⚠️ ' + (result.message || '查詢失敗')); } 
+                }) .catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); }); 
+            }
+            
+            function fetchAndShowVoucherHistory(phone, nameInfo, role) {
+                 if (!phone) { alert('無法取得會員電話'); return; }
+                 showLoader();
+                 fetch(`${SCRIPT_URL}?action=getVoucherDataForCustomer&phone=${phone}`)
+                 .then(r => r.json())
+                 .then(result => {
+                     if (result.status !== 'success') { throw new Error(result.message || '查詢資料失敗'); }
+                     
+                     const contentEl = document.getElementById('voucher-history-content');
+                     contentEl.innerHTML = '';
+                     
+                     // 處理歷史紀錄 (新增與核銷)
+                     const historyData = result.data.history || [];
+                     const summaryData = result.data.summary || {}; // 雖然這裡主要用 history，但保留結構
+                     
+                     if (historyData.length === 0) {
+                         contentEl.innerHTML = '<p style="text-align:center; color:#888;">沒有任何寄杯紀錄。</p>';
+                     } else {
+                         // 倒序排列 (最新的在最上面)
+                         historyData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                         historyData.forEach(log => {
+                             const logDate = new Date(log.timestamp).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+                             const logElement = document.createElement('div');
+                             logElement.className = 'history-item';
+                             
+                             // 處理顯示內容
+                             let empInfo = log.employeeId ? ` - ${admins[log.employeeId] || log.employeeId}` : '';
+                             let orderInfo = (log.action === '新增' && log.orderId) ? ` (單號:${log.orderId})` : '';
+                             
+                             // 組合 HTML
+                             let detailHtml = `<span class="history-detail">${log.action} ${log.amount} 杯 - ${log.item}</span>`;
+                             let metaHtml = `<div class="history-meta">${logDate}${empInfo}${orderInfo}</div>`;
+                             
+                             let actionBtn = '';
+                             if (role === 'customer' && log.action === '新增' && summaryData[log.item] > 0) {
+                                 // 這裡加個按鈕方便核銷
+                                 actionBtn = `<div class="history-action-group"><button class="btn-redeem" data-item="${log.item}">核銷</button><span class="history-remaining">剩餘 ${summaryData[log.item]} 杯</span></div>`;
+                             }
+
+                             logElement.innerHTML = `
+                                <div class="history-info">
+                                    ${detailHtml}
+                                    ${metaHtml}
+                                </div>
+                                ${actionBtn}
+                             `;
+                             contentEl.appendChild(logElement);
+                         });
+
+                         // 綁定核銷按鈕
+                         contentEl.querySelectorAll('.btn-redeem').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const item = e.target.getAttribute('data-item');
+                                const amount = prompt(`您要核銷幾杯「${item}」？`, 1);
+                                if (amount && parseInt(amount) > 0) {
+                                    showLoader();
+                                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'generateRedeemCode', phone, item, amount, lastName: nameInfo.lastName, title: nameInfo.title }) })
+                                    .then(r => r.json()).then(res => {
+                                        hideLoader();
+                                        if (res.status === 'success') {
+                                            document.getElementById('verification-code-display').textContent = res.code;
+                                            closeModal(document.getElementById('voucher-history-modal'));
+                                            openModal(document.getElementById('show-code-modal'));
+                                            startPollingForRedemption(res.code);
+                                        } else { alert('⚠️ 產生驗證碼失敗'); }
+                                    }).catch(err => { hideLoader(); alert('連線錯誤'); });
+                                }
+                            });
+                         });
+                     }
+                     openModal(document.getElementById('voucher-history-modal'));
+                     hideLoader();
+                 }).catch(err => { hideLoader(); alert('查詢失敗：請確認後端程式碼是否已更新'); });
+             }
+
+             function openRedeemPointsModal() {
+                showLoader();
+                fetch(`${SCRIPT_URL}?action=query&phone=${currentCustomerPhone}`)
+                    .then(r => r.json())
+                    .then(result => {
+                        hideLoader();
+                        if (result.status === 'success') {
+                            document.getElementById('modal-current-points').textContent = result.data.points;
+                            document.getElementById('modal-expiring-points').textContent = result.data.expiringPoints; 
+                            const listContainer = document.getElementById('points-products-list');
+                            listContainer.innerHTML = ''; 
+                            redeemableItems.forEach(product => {
+                                const productDiv = document.createElement('div');
+                                productDiv.className = 'product-item';
+                                const isAffordable = result.data.points >= product.cost;
+                                const btnText = isAffordable ? '點擊兌換' : '點數不足';
+                                const btnDisabled = !isAffordable ? 'disabled' : '';
+                                productDiv.innerHTML = `<img src="${product.image}" class="product-image"><div class="product-info"><div class="product-cost"><span class="cost-number">${product.cost}</span><span class="cost-text">點兌換</span></div><span class="product-name">${product.name}</span><button class="btn-redeem-product" ${btnDisabled} data-cost="${product.cost}" data-name="${product.name}">${btnText}</button></div>`;
+                                listContainer.appendChild(productDiv);
+                            });
+                            listContainer.querySelectorAll('.btn-redeem-product').forEach(btn => {
+                                btn.addEventListener('click', (e) => {
+                                    pendingPointRedeemItem = { name: e.target.getAttribute('data-name'), cost: e.target.getAttribute('data-cost') };
+                                    document.getElementById('point-redeem-item-name').textContent = `確認兌換「${pendingPointRedeemItem.name}」 (${pendingPointRedeemItem.cost}點)？`;
+                                    closeModal(document.getElementById('redeem-points-modal'));
+                                    openModal(document.getElementById('point-redeem-confirm-modal'));
+                                });
+                            });
+                            openModal(document.getElementById('redeem-points-modal'));
+                        } else { alert("無法讀取點數資料"); }
+                    })
+                    .catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); });
+            }
+
+            function handleStaffConfirmPointRedeem() {
+                if(!pendingPointRedeemItem) return;
+                showLoader();
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'directRedeemPoints', phone: currentCustomerPhone, item: pendingPointRedeemItem.name, amount: pendingPointRedeemItem.cost }) })
+                .then(r => r.json())
+                .then(res => {
+                    hideLoader();
+                    if (res.status === 'success') {
+                        alert('✅ 兌換成功！');
+                        document.getElementById('points-balance').textContent = res.newPoints; 
+                        updateMemberLevelUI(res.annualPoints);
+                        closeModal(document.getElementById('point-redeem-confirm-modal'));
+                    } else { alert('⚠️ 兌換失敗：' + res.message); }
+                })
+                .catch(err => { hideLoader(); alert('連線錯誤'); });
+            }
+            
+            function handleVerifyStaffCodeForCoupon() {
+                 const inputCode = document.getElementById('staff-code-input').value;
+                 if (inputCode === '287719' && pendingCouponUseId) {
+                     showLoader(); 
+                     const payload = { action: 'redeemCoupon', phone: currentCustomerPhone, couponId: pendingCouponUseId, title: '優惠卷核銷' };
+                     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+                     .then(r => r.json()).then(res => {
+                         hideLoader();
+                         if (res.status === 'success') {
+                             globalUsedCoupons.push(pendingCouponUseId);
+                             alert('核銷成功！');
+                             closeModal(document.getElementById('staff-verify-modal'));
+                             pendingCouponUseId = null;
+                             updateMemberLevelUI(currentAnnualPoints);
+                             openCouponsModal(); 
+                         } else { alert('核銷失敗'); }
+                     }).catch(err => { hideLoader(); alert('連線錯誤'); });
+                 } else { alert('核銷碼錯誤'); }
+             }
+
+             function openQRScanner() {
+                const qrContainer = document.getElementById('qr-reader-container');
+                qrContainer.classList.remove('hidden');
+                if (!html5QrCodeScanner) {
+                    html5QrCodeScanner = new Html5Qrcode("qr-reader");
+                    html5QrCodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
+                        html5QrCodeScanner.stop().then(() => {
+                            qrContainer.classList.add('hidden');
+                            showLoader();
+                            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addPointsFromQR', phone: currentCustomerPhone, qrData: decodedText }) })
+                            .then(r => r.json()).then(res => {
+                                hideLoader();
+                                if(res.status === 'success') { alert(res.message); document.getElementById('points-balance').textContent = res.newPoints; updateMemberLevelUI(res.annualPoints); }
+                                else alert('掃描失敗: ' + res.message);
+                            });
+                        });
+                    }).catch(err => { alert("無法啟動相機"); qrContainer.classList.add('hidden'); });
+                }
+             }
+             
+             function closeQRScanner() { if (html5QrCodeScanner) { html5QrCodeScanner.stop().then(() => { document.getElementById('qr-reader-container').classList.add('hidden'); }); } else { document.getElementById('qr-reader-container').classList.add('hidden'); } }
+
+             function handleAdminLookup() {
+                const phone = document.getElementById('lookup-phone-input').value.trim();
+                if (!/^\d{10}$/.test(phone)) { alert('電話號碼格式錯誤'); return; }
+                showLoader();
+                fetch(`${SCRIPT_URL}?action=query&phone=${phone}`).then(r => r.json()).then(result => {
+                    hideLoader();
+                    if (result.status === 'success') {
+                        searchedPhone = result.data;
+                        document.getElementById('result-points').textContent = result.data.points;
+                        document.getElementById('result-vouchers').textContent = result.data.vouchers;
+                        document.getElementById('lookup-results').classList.remove('hidden');
+                    } else { searchedPhone = null; alert('查無此會員資料。'); }
+                }).catch(err => { hideLoader(); alert('連線錯誤'); });
+             }
+
+            function openAddVoucherModal() {
+                 const phoneInput = document.getElementById('add-voucher-phone');
+                 if (searchedPhone && searchedPhone.phone) phoneInput.value = searchedPhone.phone; else phoneInput.value = '';
+                 document.getElementById('add-voucher-item').value = '';
+                 document.getElementById('add-voucher-amount').value = '';
+                 document.getElementById('add-voucher-order-id').value = '';
+                 document.getElementById('add-voucher-employee-id').value = '';
+                 openModal(document.getElementById('add-voucher-modal'));
+            }
+
+            function handleConfirmAddVoucher() {
+                const phone = document.getElementById('add-voucher-phone').value.trim();
+                const item = document.getElementById('add-voucher-item').value;
+                const amount = document.getElementById('add-voucher-amount').value;
+                const orderId = document.getElementById('add-voucher-order-id').value.trim();
+                const employeeId = document.getElementById('add-voucher-employee-id').value;
+                
+                if (!/^\d{10}$/.test(phone) || !item || !amount || !orderId || !employeeId) { alert('請填寫完整資訊'); return; }
+                pendingAddVoucherData = { action: 'addVoucher', phone, item, amount, orderId, employeeId };
+                document.getElementById('admin-confirm-add-details').innerHTML = `<p>會員: ${phone}</p><p>品項: ${item}</p><p>數量: ${amount}</p>`;
+                closeModal(document.getElementById('add-voucher-modal'));
+                openModal(document.getElementById('admin-confirm-add-modal'));
+            }
+            
+            function handleFinalAddVoucher() {
+                 showLoader();
+                 fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(pendingAddVoucherData) }).then(r => r.json()).then(res => {
+                     hideLoader(); closeModal(document.getElementById('admin-confirm-add-modal'));
+                     if(res.status==='success') {
+                         alert('新增成功');
+                         if(searchedPhone && searchedPhone.phone === pendingAddVoucherData.phone) {
+                             handleAdminLookup(); 
+                         }
+                     } else alert('新增失敗');
+                     pendingAddVoucherData = null;
+                 }).catch(() => { hideLoader(); alert('連線錯誤'); });
+            }
+
+            function handleVerifyRedeemCode() {
+                const code = document.getElementById('admin-redeem-code-input').value;
+                const employeeId = document.getElementById('admin-redeem-employee-id').value;
+                if (!code || !employeeId) { alert('請輸入完整資訊'); return; }
+                
+                showLoader();
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'processRedemption', step: 'verify', code, employeeId })})
+                .then(r => r.json()).then(result => {
+                    hideLoader();
+                    if(result.status === 'success') {
+                        const data = result.data;
+                        document.getElementById('admin-confirm-redeem-details').innerHTML = `<p>會員: ${data.customerName}</p><p>品項: ${data.item}</p><p>數量: ${data.amount}</p>`;
+                        verificationCode = code; 
+                        closeModal(document.getElementById('admin-verify-code-modal'));
+                        openModal(document.getElementById('admin-confirm-redeem-modal'));
+                    } else { alert('驗證失敗'); }
+                }).catch(() => { hideLoader(); alert('連線錯誤'); });
+            }
+
+            function handleFinalConfirmRedeem() {
+                const employeeId = document.getElementById('admin-redeem-employee-id').value;
+                showLoader();
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'processRedemption', step: 'confirm', code: verificationCode, employeeId })})
+                .then(r => r.json()).then(result => {
+                    hideLoader();
+                    if(result.status === 'success') {
+                        alert('核銷成功');
+                        closeModal(document.getElementById('admin-confirm-redeem-modal'));
+                        if(searchedPhone) handleAdminLookup(); 
+                    } else { alert('核銷失敗'); }
+                }).catch(() => { hideLoader(); alert('連線錯誤'); });
+            }
+
+
+            // =============================================================
+            // 4. 事件綁定 (Event Binding)
+            // =============================================================
+            
+            // Login & Register (Use Try-Catch for safety)
+            try {
+                const loginButton = document.getElementById('login-button');
+                if (loginButton) loginButton.addEventListener('click', handleLogin);
+                
+                const registerButton = document.getElementById('register-button');
+                if (registerButton) registerButton.addEventListener('click', () => {
+                    const el = document.getElementById('reg-phone'); if(el) el.value='';
+                    openModal(document.getElementById('register-modal'));
+                });
+                
+                const confirmRegButton = document.getElementById('confirm-reg-button');
+                if (confirmRegButton) confirmRegButton.addEventListener('click', handleRegister);
+            } catch(e) { console.error("Binding Error 1", e); }
+
+            // Member Home
+            try {
+                document.getElementById('customer-logout-button').addEventListener('click', logout);
+                document.getElementById('add-points-btn').addEventListener('click', openQRScanner);
+                document.getElementById('redeem-points-btn').addEventListener('click', openRedeemPointsModal);
+                document.getElementById('points-history-btn').addEventListener('click', () => fetchAndShowPointsHistory(currentCustomerPhone));
+                document.getElementById('voucher-history-btn').addEventListener('click', () => fetchAndShowVoucherHistory(currentCustomerPhone, currentCustomerInfo, 'customer'));
+            } catch(e) { console.error("Binding Error 2", e); }
+            
+            // Admin Home
+            try {
+                document.getElementById('admin-logout-button').addEventListener('click', logout);
+                document.getElementById('lookup-button').addEventListener('click', handleAdminLookup);
+                document.getElementById('admin-add-voucher-btn').addEventListener('click', openAddVoucherModal);
+                document.getElementById('admin-redeem-voucher-btn').addEventListener('click', () => openModal(document.getElementById('admin-verify-code-modal')));
+                document.getElementById('admin-voucher-history-btn').addEventListener('click', () => {
+                    if (searchedPhone && searchedPhone.phone) fetchAndShowVoucherHistory(searchedPhone.phone, {lastName: searchedPhone.lastName, title: searchedPhone.title}, 'admin');
+                    else alert('請先查詢會員資料');
+                });
+                document.getElementById('admin-points-history-btn').addEventListener('click', () => {
+                    if (searchedPhone && searchedPhone.phone) fetchAndShowPointsHistory(searchedPhone.phone);
+                    else alert('請先查詢會員資料');
+                });
+            } catch(e) { console.error("Binding Error 3", e); }
+            
+            // Modals
+            try {
+                document.getElementById('confirm-add-voucher-btn').addEventListener('click', handleConfirmAddVoucher);
+                document.getElementById('cancel-add-btn').addEventListener('click', () => closeModal(document.getElementById('admin-confirm-add-modal')));
+                document.getElementById('final-confirm-add-btn').addEventListener('click', handleFinalAddVoucher);
+                
+                document.getElementById('verify-redeem-code-btn').addEventListener('click', handleVerifyRedeemCode);
+                document.getElementById('cancel-redeem-btn').addEventListener('click', () => closeModal(document.getElementById('admin-confirm-redeem-modal')));
+                document.getElementById('final-confirm-redeem-btn').addEventListener('click', handleFinalConfirmRedeem);
+
+                document.getElementById('cancel-point-redeem-btn').addEventListener('click', () => {
+                    closeModal(document.getElementById('point-redeem-confirm-modal'));
+                    openRedeemPointsModal();
+                });
+                document.getElementById('staff-confirm-point-redeem-btn').addEventListener('click', handleStaffConfirmPointRedeem);
+
+                document.getElementById('cancel-use-coupon-btn').addEventListener('click', () => {
+                    closeModal(document.getElementById('coupon-confirm-modal'));
+                    openCouponsModal();
+                });
+                document.getElementById('confirm-use-coupon-btn').addEventListener('click', () => {
+                    closeModal(document.getElementById('coupon-confirm-modal'));
+                    document.getElementById('staff-code-input').value = '';
+                    openModal(document.getElementById('staff-verify-modal'));
+                });
+                document.getElementById('verify-staff-code-btn').addEventListener('click', handleVerifyStaffCodeForCoupon);
+
+                document.getElementById('close-qr-reader').addEventListener('click', closeQRScanner);
+                document.querySelectorAll('.modal-overlay').forEach(modal => {
+                    modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal); });
+                    const closeBtn = modal.querySelector('.close-button');
+                    if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modal));
+                });
+
+                const statusCard = document.getElementById('member-status-card');
+                if (statusCard) statusCard.addEventListener('click', window.openMemberDetailModal);
+            } catch(e) { console.error("Binding Error 4", e); }
+
+            // =============================================================
+            // 5. 自動登入 (Auto Login)
+            // =============================================================
             if (savedPhone) {
                 const inputElement = document.getElementById('login-phone-input');
-                if (inputElement && loginButton) {
+                const btn = document.getElementById('login-button');
+                if (inputElement && btn) {
                     inputElement.value = savedPhone;
                     setTimeout(() => {
-                        loginButton.click();
+                        btn.click();
                     }, 500); 
                 }
             }
-
         });
     </script>
 </body>
