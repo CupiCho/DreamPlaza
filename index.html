@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.04.53
-    Last Updated: 2025/01/07 (Fix: Sync Homepage Progress Bar Colors with Detail Modal)
+    Current Version: v25.04.54
+    Last Updated: 2025/01/07 (Update Voucher History Display Format)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -209,7 +209,7 @@
         .history-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
         .history-info-group { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
         .history-date { font-size: 0.8em; color: #999; }
-        .history-meta { font-size: 0.85em; color: #888; margin-top: 2px; } /* 調整：顯示員工與訂單資訊的樣式 */
+        .history-meta { font-size: 0.85em; color: #888; margin-top: 2px; line-height: 1.4; } /* 調整：顯示員工與訂單資訊的樣式 */
         .history-item-name { font-size: 1.1em; font-weight: bold; color: #4a2c2a; display: flex; align-items: center; gap: 5px; }
         .history-remaining { font-size: 0.85em; color: #27ae60; margin-top: 4px; font-weight: 500; }
         .history-action-group { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; min-width: 80px; }
@@ -351,7 +351,7 @@
 
     <div id="root-container">
         <div id="login-page">
-            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.53</div></div>
+            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.54</div></div>
         </div>
         <div id="customer-home-page" class="hidden">
             <div class="customer-container">
@@ -395,7 +395,7 @@
                     <p class="info-main-data"><span id="voucher-balance">0</span><span class="small-text">杯</span></p>
                     <div class="action-buttons-group"><button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button></div>
                 </div>
-                <div class="version-info">v25.04.53</div>
+                <div class="version-info">v25.04.54</div>
             </div>
         </div>
         
@@ -658,6 +658,8 @@
         window.openCouponsModal = function() {}; 
         window.openMemberDetailModal = function() {};
         window.closeModal = function(modal) { if(modal) modal.classList.add('hidden'); };
+        
+        // 修正後的頁面切換函式
         window.showPage = function(page) {
             document.querySelectorAll('#login-page, #customer-home-page, #admin-home-page').forEach(p => p.classList.add('hidden'));
             if(page) page.classList.remove('hidden');
@@ -667,7 +669,7 @@
             // =============================================================
             // 2. 變數與常數宣告 (Variables & Constants) - 放在最上面
             // =============================================================
-            const APP_VERSION = 'v25.04.53';
+            const APP_VERSION = 'v25.04.54';
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec";
 
             // ★★★ 新增：年度變數 (用於優惠卷 ID 每年重置) ★★★
@@ -1167,7 +1169,7 @@
                         if (result.data.length === 0) { contentEl.innerHTML = '<p style="text-align:center; color:#888;">沒有任何點數紀錄。</p>'; } 
                         else { 
                             result.data.forEach(log => { 
-                                const logDate = new Date(log.timestamp).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }); 
+                                const logDate = new Date(log.timestamp).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }); 
                                 const logElement = document.createElement('div'); logElement.className = 'history-item'; 
                                 logElement.innerHTML = ` <div class="history-info"> <span class="history-date">${logDate}</span> <span class="history-detail" style="font-weight:bold; color:#4a2c2a;">${log.item || '未知項目'}</span> <span class="history-detail" style="font-size:0.9em; color:#666;">${log.memo}</span> </div> `; 
                                 contentEl.appendChild(logElement); 
@@ -1198,14 +1200,23 @@
                          historyData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
                          historyData.forEach(log => {
-                             const logDate = new Date(log.timestamp).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+                             // FIX: Date format 24h
+                             const dateObj = new Date(log.timestamp);
+                             const logDate = dateObj.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+                             
                              const logElement = document.createElement('div');
                              logElement.className = 'history-item';
                              
-                             let empInfo = log.employeeId ? ` - ${admins[log.employeeId] || log.employeeId}` : '';
-                             let orderInfo = (log.action === '新增' && log.orderId) ? ` (單號:${log.orderId})` : '';
+                             // FIX: Employee Info (No dash at start)
+                             let empRaw = admins[log.employeeId] || log.employeeId || '';
+                             let empInfo = empRaw ? ` ${empRaw.replace(' ', '-')}` : '';
+                             
+                             // FIX: Order ID (New Line)
+                             let orderInfo = (log.action === '新增' && log.orderId) ? `<br>訂單編號:${log.orderId}` : '';
+                             
                              let detailHtml = `<span class="history-detail">${log.action} ${log.amount} 杯 - ${log.item}</span>`;
-                             let metaHtml = `<div class="history-meta">${logDate}${empInfo}${orderInfo}</div>`;
+                             // Use line-height for better spacing with <br>
+                             let metaHtml = `<div class="history-meta" style="line-height:1.4;">${logDate}${empInfo}${orderInfo}</div>`;
                              
                              let actionBtn = '';
                              if (role === 'customer' && log.action === '新增' && summaryData[log.item] > 0) {
