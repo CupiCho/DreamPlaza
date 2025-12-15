@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.04.61
-    Last Updated: 2025/01/07 (Fix: QR Camera Not Restarting on Second Attempt)
+    Current Version: v25.05.01
+    Last Updated: 2025/01/07 (Major Release: Permanent Points, New Tiers, Coupon Batch Sending)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -351,7 +351,7 @@
 
     <div id="root-container">
         <div id="login-page">
-            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.61</div></div>
+            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.05.01</div></div>
         </div>
         <div id="customer-home-page" class="hidden">
             <div class="customer-container">
@@ -395,7 +395,7 @@
                     <p class="info-main-data"><span id="voucher-balance">0</span><span class="small-text">杯</span></p>
                     <div class="action-buttons-group"><button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button></div>
                 </div>
-                <div class="version-info">v25.04.61</div>
+                <div class="version-info">v25.05.01</div>
             </div>
         </div>
         
@@ -668,8 +668,8 @@
             // =============================================================
             // 2. 變數與常數宣告 (Variables & Constants) - 放在最上面
             // =============================================================
-            const APP_VERSION = 'v25.04.61';
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec";
+            const APP_VERSION = 'v25.05.01';
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxInH2ktW0lcldA4CnE7UDEhj_-o2vhbBwS8CUcbPVBzyWZqK8TU3iKj7uYwx1xZ44/exec";
 
             // ★★★ 新增：年度變數 (用於優惠卷 ID 每年重置) ★★★
             const currentYear = new Date().getFullYear();
@@ -1334,8 +1334,6 @@
              function openQRScanner() {
                 const qrContainer = document.getElementById('qr-reader-container');
                 qrContainer.classList.remove('hidden');
-                
-                // FIX: Always reset scanner logic
                 if (!html5QrCodeScanner) {
                     html5QrCodeScanner = new Html5Qrcode("qr-reader");
                 }
