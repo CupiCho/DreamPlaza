@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.06.11
-    Last Updated: 2025/01/07 (Fix: Coupon Modal Layout - Image Size, Text List, Button Alignment)
+    Current Version: v25.06.12
+    Last Updated: 2025/01/07 (Fix: Modal Nesting Issue - Voucher Modal was inside Coupon Modal)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -172,7 +172,6 @@
         .form-grid { display: grid; gap: 15px; text-align: left; }
         .form-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: #666; }
         .form-group .form-input { text-align: left; }
-        /* 針對「派發優惠卷」視窗加大欄位間距 */
         #admin-send-coupon-modal .form-grid { gap: 25px; }
 
         /* 其他 */
@@ -183,8 +182,26 @@
         .history-meta { font-size: 0.85em; color: #888; line-height: 1.4; }
         
         /* 點數兌換商品列表樣式 */
-        .product-item { display: flex; align-items: center; margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .product-img-container { width: 120px; height: 120px; background-color: #fff5e6; display: flex; align-items: center; justify-content: center; border-right: 1px dashed #e0e0e0; flex-shrink: 0; }
+        .product-item { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 15px; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            background: #fff; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02); 
+        }
+        .product-img-container { 
+            width: 120px; 
+            height: 120px; 
+            background-color: #fff5e6; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-right: 1px dashed #e0e0e0; 
+            flex-shrink: 0; 
+        }
         .product-img { width: 90%; height: 90%; object-fit: contain; }
         .product-details { flex: 1; text-align: left; padding: 0 15px; display: flex; flex-direction: column; justify-content: center; }
         .product-name { font-size: 1.1em; font-weight: bold; color: #333; margin-bottom: 5px; line-height: 1.2; }
@@ -215,31 +232,16 @@
         .points-expiring { font-size: 0.9em; color: #c0392b; }
         .points-disclaimer { font-size: 0.7em; color: #999; margin-bottom: 15px; text-align: left; line-height: 1.5; }
 
-        /* 版本號碼樣式 - 強制小灰字 */
         .version-info { margin-top: 30px; margin-bottom: 10px; font-size: 0.75em; color: #ccc; text-align: center; width: 100%; }
 
-        /* ★★★ FIX: 圖片大小與按鈕排列修復 ★★★ */
-        .coupon-confirm-img { 
-            height: 120px;       /* 固定高度 */
-            width: auto;         /* 寬度自動 */
-            max-width: 100%;     /* 不超過容器 */
-            object-fit: contain; 
-            margin-bottom: 15px; 
-            display: block; 
-            margin-left: auto; 
-            margin-right: auto;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-
+        .coupon-confirm-img { height: 120px; width: auto; max-width: 100%; object-fit: contain; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; border-radius: 8px; border: 1px solid #eee; }
         .coupon-confirm-content { text-align: left; margin-bottom: 20px; font-size: 0.9em; line-height: 1.5; color: #555; }
         .coupon-confirm-content p { margin: 8px 0; }
-        .coupon-confirm-content ul { padding-left: 20px; margin: 0; } /* 修正列表樣式 */
+        .coupon-confirm-content ul { padding-left: 20px; margin: 0; }
         .coupon-confirm-content ol { padding-left: 20px; margin: 0; }
         .coupon-confirm-content li { margin-bottom: 5px; }
         
         .confirm-buttons { display: flex; gap: 15px; margin-top: 30px; }
-        /* 強制按鈕左右平分 */
         .confirm-buttons .btn { flex: 1; } 
 
         .confirm-details p { margin: 10px 0; font-size: 1.1em; line-height: 1.6; text-align: left; }
@@ -258,11 +260,11 @@
     </style>
 </head>
 <body>
-    <!-- 定義 SVG 漸層 (隱藏) -->
+    <!-- SVG 定義 (隱藏) -->
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="grad-white" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#F5E6D3; stop-opacity:1"/><stop offset="50%" style="stop-color:#FFFFFF; stop-opacity:1"/><stop offset="100%" style="stop-color:#FAF0E6; stop-opacity:1"/></linearGradient>
-        <linearGradient id="grad-bronze" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#B87333; stop-opacity:1"/><stop offset="40%" style="stop-color:#E8A87C; stop-opacity:1"/><stop offset="100%" style="stop-color:#8B4513; stop-opacity:1"/></linearGradient>
+        <linearGradient id="grad-bronze" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#B87333; stop-opacity:1"/><stop offset="40%" style="stop-color:#E8A87C; stop-opacity:1"/><stop offset="100%" style="stop-color:#B8860B; stop-opacity:1"/></linearGradient>
         <linearGradient id="grad-silver" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#A9A9A9; stop-opacity:1"/><stop offset="40%" style="stop-color:#F0F0F0; stop-opacity:1"/><stop offset="100%" style="stop-color:#696969; stop-opacity:1"/></linearGradient>
         <linearGradient id="grad-gold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#DAA520; stop-opacity:1"/><stop offset="40%" style="stop-color:#FFD700; stop-opacity:1"/><stop offset="100%" style="stop-color:#B8860B; stop-opacity:1"/></linearGradient>
       </defs>
@@ -282,7 +284,7 @@
                     <div class="divider"></div>
                     <button class="btn btn-secondary" id="register-button">會員註冊</button>
                 </div>
-                <div class="version-info">v25.06.11</div>
+                <div class="version-info">v25.06.12</div>
             </div>
         </div>
         
@@ -331,7 +333,7 @@
                         <button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button>
                     </div>
                 </div>
-                <div class="version-info">v25.06.11</div>
+                <div class="version-info">v25.06.12</div>
             </div>
         </div>
 
@@ -421,14 +423,6 @@
 
         <!-- Modals -->
         <div id="my-coupons-modal" class="modal-overlay hidden">
-        <div id="voucher-history-modal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <span class="close-button" onclick="closeModal(this.parentElement.parentElement)">&times;</span>
-        <h2 class="modal-title">寄杯查詢</h2>
-        <!-- 這是程式碼正在尋找的關鍵 ID -->
-        <div id="voucher-history-content" class="history-content"></div>
-    </div>
-</div>
             <div class="modal-content">
                 <span class="close-button" onclick="closeModal(document.getElementById('my-coupons-modal'))">&times;</span>
                 <h2 class="modal-title">會員優惠票匣</h2>
@@ -439,6 +433,15 @@
                 </div>
                 <div class="points-disclaimer">下列為您目前等級可享有的權益優惠，請出示給店員核銷使用。</div>
                 <div id="coupons-list-container"></div>
+            </div>
+        </div>
+
+        <!-- ★★★ 修正：將寄杯查詢 Modal 移出，成為獨立視窗 ★★★ -->
+        <div id="voucher-history-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal(this.parentElement.parentElement)">&times;</span>
+                <h2 class="modal-title">寄杯查詢</h2>
+                <div id="voucher-history-content" class="history-content"></div>
             </div>
         </div>
 
@@ -497,8 +500,8 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            const APP_VERSION = 'v25.06.11';
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw07qEM3zDll_N9ICPnTT1aWMmHt2qF1JRrSO6dwIih84yAwxWgyQQGfVxQmS3alj8/exec";
+            const APP_VERSION = 'v25.06.12';
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec";
             const currentYear = new Date().getFullYear();
 
             const admins = { '10427091': '7091 Arno', '10431118': '1118 Carol', '10416377': '6377 Eric', '10425120': '5120 Elly', '10431938': '1938 Jewel', '10413569': '3569 Summer', '10426630': '6630 Elaine' };
@@ -699,83 +702,8 @@
                      });
                  }
              }
-
-            // Event Bindings
-            document.getElementById('member-status-card').addEventListener('click', window.showMemberDetailPage);
-            document.getElementById('back-to-home-btn').addEventListener('click', () => { showPage(document.getElementById('customer-home-page')); });
-            document.getElementById('login-button').addEventListener('click', handleLogin);
-            document.getElementById('register-button').addEventListener('click', () => { document.getElementById('reg-phone').value=''; openModal(document.getElementById('register-modal')); });
-            document.getElementById('confirm-reg-button').addEventListener('click', handleRegister);
-            document.getElementById('customer-logout-button').addEventListener('click', logout);
-            document.getElementById('add-points-btn').addEventListener('click', openQRScanner);
-            document.getElementById('redeem-points-btn').addEventListener('click', openRedeemPointsModal);
-            document.getElementById('points-history-btn').addEventListener('click', () => fetchAndShowPointsHistory(currentCustomerPhone));
-            document.getElementById('voucher-history-btn').addEventListener('click', () => fetchAndShowVoucherHistory(currentCustomerPhone, currentCustomerInfo, 'customer'));
-            
-            document.getElementById('admin-logout-button').addEventListener('click', logout);
-            document.getElementById('lookup-button').addEventListener('click', handleAdminLookup);
-            document.getElementById('admin-add-voucher-btn').addEventListener('click', openAddVoucherModal);
-            document.getElementById('admin-redeem-voucher-btn').addEventListener('click', () => openModal(document.getElementById('admin-verify-code-modal')));
-            document.getElementById('admin-send-coupon-btn').addEventListener('click', () => {
-                document.getElementById('send-coupon-phone').value = ''; document.getElementById('send-coupon-type').value = ''; document.getElementById('send-coupon-qty').value = '1'; document.getElementById('send-coupon-expiry').value = ''; 
-                document.getElementById('custom-coupon-name-group').classList.add('hidden'); document.getElementById('send-target-mode').value = 'phone'; document.getElementById('target-phone-group').classList.remove('hidden'); document.getElementById('target-level-group').classList.add('hidden');
-                openModal(document.getElementById('admin-send-coupon-modal'));
-            });
-            document.getElementById('confirm-send-coupon-btn').addEventListener('click', handleAdminSendCoupon);
-            document.getElementById('admin-voucher-history-btn').addEventListener('click', () => { if (searchedPhone) fetchAndShowVoucherHistory(searchedPhone.phone, {lastName: searchedPhone.lastName, title: searchedPhone.title}, 'admin'); else alert('請先查詢會員資料'); });
-            document.getElementById('admin-points-history-btn').addEventListener('click', () => { if (searchedPhone) fetchAndShowPointsHistory(searchedPhone.phone); else alert('請先查詢會員資料'); });
-
-            document.getElementById('send-coupon-type').addEventListener('change', (e) => { const grp = document.getElementById('custom-coupon-name-group'); if(e.target.value === 'other') grp.classList.remove('hidden'); else grp.classList.add('hidden'); });
-            document.getElementById('send-target-mode').addEventListener('change', (e) => { const ph = document.getElementById('target-phone-group'); const lv = document.getElementById('target-level-group'); if(e.target.value === 'phone') { ph.classList.remove('hidden'); lv.classList.add('hidden'); } else { ph.classList.add('hidden'); lv.classList.remove('hidden'); } });
-
-            document.getElementById('confirm-add-voucher-btn').addEventListener('click', handleConfirmAddVoucher);
-            document.getElementById('cancel-add-btn').addEventListener('click', () => closeModal(document.getElementById('admin-confirm-add-modal')));
-            document.getElementById('final-confirm-add-btn').addEventListener('click', handleFinalAddVoucher);
-            document.getElementById('verify-redeem-code-btn').addEventListener('click', handleVerifyRedeemCode);
-            document.getElementById('cancel-redeem-btn').addEventListener('click', () => closeModal(document.getElementById('admin-confirm-redeem-modal')));
-            document.getElementById('final-confirm-redeem-btn').addEventListener('click', handleFinalConfirmRedeem);
-            document.getElementById('cancel-point-redeem-btn').addEventListener('click', () => { closeModal(document.getElementById('point-redeem-confirm-modal')); openRedeemPointsModal(); });
-            document.getElementById('staff-confirm-point-redeem-btn').addEventListener('click', handleStaffConfirmPointRedeem);
-            document.getElementById('cancel-use-coupon-btn').addEventListener('click', () => { closeModal(document.getElementById('coupon-confirm-modal')); openCouponsModal(); });
-            document.getElementById('confirm-use-coupon-btn').addEventListener('click', () => { closeModal(document.getElementById('coupon-confirm-modal')); document.getElementById('staff-code-input').value = ''; openModal(document.getElementById('staff-verify-modal')); });
-            document.getElementById('verify-staff-code-btn').addEventListener('click', handleVerifyStaffCodeForCoupon);
-            document.getElementById('close-qr-reader').addEventListener('click', closeQRScanner);
-            document.querySelectorAll('.modal-overlay').forEach(modal => { modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal); }); const closeBtn = modal.querySelector('.close-button'); if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modal)); });
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => { btn.addEventListener('click', (e) => { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); e.target.classList.add('active'); currentCouponTab = e.target.getAttribute('data-tab'); updateCouponListDisplay(); }); });
-
-            if (savedPhone) { const inputElement = document.getElementById('login-phone-input'); const btn = document.getElementById('login-button'); if (inputElement && btn) { inputElement.value = savedPhone; setTimeout(() => { btn.click(); }, 500); } }
-
-            // -- Logic functions (Re-using from v25.06.01 context) --
-            // Only Key Changes Highlighted:
-            // handleLogin -> checks result.found
-            // handleAdminLookup -> checks result.found
-            // openQRScanner -> resets html5QrCodeScanner
-            
-            function handleLogin() {
-                const input = document.getElementById('login-phone-input').value.trim();
-                if (!input) { alert('請輸入電話號碼'); return; }
-                if (admins[input]) { currentAdminId = input; showPage(document.getElementById('admin-home-page')); updateGreeting('admin-time-greeting', 'admin-id-greeting', admins[input]); document.getElementById('lookup-results').classList.add('hidden'); const sendBtn = document.getElementById('admin-send-coupon-btn'); if(sendBtn) { if (CAN_SEND_COUPON_ADMINS.includes(input)) sendBtn.style.display = 'inline-block'; else sendBtn.style.display = 'none'; } return; }
-                if (!/^\d{10}$/.test(input)) { alert('電話號碼格式錯誤'); return; }
-                showLoader(); isCouponsLoaded = false;
-                fetch(`${SCRIPT_URL}?action=query&phone=${input}`).then(r=>r.json()).then(result => {
-                    hideLoader();
-                    if (result.status === 'success') {
-                        if (result.found) {
-                            localStorage.setItem('cupicho_user_phone', result.data.phone); currentCustomerPhone = result.data.phone; currentCustomerInfo = { lastName: result.data.lastName, title: result.data.title };
-                            showPage(document.getElementById('customer-home-page')); updateGreeting('customer-time-greeting', 'customer-name-greeting', result.data.lastName + result.data.title);
-                            document.getElementById('points-balance').textContent = result.data.points; document.getElementById('voucher-balance').textContent = result.data.vouchers;
-                            updateMemberLevelUI(result.data.annualPoints); fetchCouponData();
-                        } else { document.getElementById('reg-phone').value = input; openModal(document.getElementById('register-modal')); }
-                    } else { alert('⚠️ 系統錯誤：' + (result.message || '未知錯誤')); }
-                }).catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); });
-            }
-
-            function handleRegister() { const phone = document.getElementById('reg-phone').value.trim(); const lastName = document.getElementById('reg-lastname').value.trim(); const title = document.getElementById('reg-title').value; if (!/^\d{10}$/.test(phone)) { alert('電話號碼格式錯誤'); return; } if (!lastName) { alert('請輸入姓氏'); return; } showLoader(); fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'register', phone, lastName, title }) }).then(r => r.json()).then(result => { hideLoader(); if (result.status === 'success') { alert('✅ 註冊成功！歡迎您！'); localStorage.setItem('cupicho_user_phone', phone); closeModal(document.getElementById('register-modal')); currentCustomerPhone = phone; currentCustomerInfo = { lastName, title }; showPage(document.getElementById('customer-home-page')); updateGreeting('customer-time-greeting', 'customer-name-greeting', lastName + title); document.getElementById('points-balance').textContent = 0; document.getElementById('voucher-balance').textContent = 0; updateMemberLevelUI(0); } else { alert('⚠️ ' + (result.message || '註冊失敗')); } }).catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); }); }
-            function logout() { localStorage.removeItem('cupicho_user_phone'); window.location.reload(); }
-            function fetchCouponData() { if (!currentCustomerPhone) return; fetch(`${SCRIPT_URL}?action=getUsedCoupons&phone=${currentCustomerPhone}`).then(r => r.json()).then(res => { if (res.status === 'success') { globalUsedCoupons = res.data || []; globalExtraCoupons = res.extra || []; isCouponsLoaded = true; updateMemberLevelUI(currentAnnualPoints); } }).catch(console.error); }
-            function handleAdminSendCoupon() { const phone = document.getElementById('send-coupon-phone').value.trim(); const typeSelect = document.getElementById('send-coupon-type'); let type = typeSelect.value; const qty = parseInt(document.getElementById('send-coupon-qty').value); const targetMode = document.getElementById('send-target-mode').value; const expiryInput = document.getElementById('send-coupon-expiry').value; if (type === 'other') { const customName = document.getElementById('send-coupon-custom-name').value.trim(); if (!customName) { alert('請輸入優惠卷名稱'); return; } type = `other:${customName}`; } let payload = { action: 'sendCoupon', type, qty, employeeId: currentAdminId, targetMode, expiry: expiryInput }; if (targetMode === 'phone') { if (!phone || !/^\d{10}$/.test(phone)) { alert('請輸入正確電話'); return; } payload.phone = phone; } else { payload.level = document.getElementById('send-coupon-level').value; } if (!type || !qty) { alert('請填寫完整'); return; } if (targetMode === 'level' && !confirm(`確定要派發給「${document.getElementById('send-coupon-level').selectedOptions[0].text}」嗎？`)) return; showLoader(); fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json()).then(res => { hideLoader(); if(res.status === 'success') { alert('✅ 派發成功！'); closeModal(document.getElementById('admin-send-coupon-modal')); } else { alert('⚠️ 派發失敗：' + res.message); } }).catch(() => { hideLoader(); alert('連線錯誤'); }); }
-            function fetchAndShowPointsHistory(phone) { if (!phone) { alert('無法取得會員電話'); return; } showLoader(); fetch(`${SCRIPT_URL}?action=getPointsHistory&phone=${phone}`).then(r => r.json()).then(result => { hideLoader(); if (result.status === 'success') { const contentEl = document.getElementById('points-history-content'); contentEl.innerHTML = ''; if (result.data.length === 0) { contentEl.innerHTML = '<p style="text-align:center; color:#888;">沒有任何點數紀錄。</p>'; } else { result.data.forEach(log => { const logDate = new Date(log.timestamp).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }); const logElement = document.createElement('div'); logElement.className = 'history-item'; logElement.innerHTML = ` <div class="history-info"> <span class="history-date">${logDate}</span> <span class="history-detail" style="font-weight:bold; color:#4a2c2a;">${log.item || '未知項目'}</span> <span class="history-detail" style="font-size:0.9em; color:#666;">${log.memo}</span> </div> `; contentEl.appendChild(logElement); }); } openModal(document.getElementById('points-history-modal')); } else { alert('⚠️ ' + (result.message || '查詢失敗')); } }).catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); }); }
+             
+            // ★★★ 加強版寄杯查詢函式 ★★★
             function fetchAndShowVoucherHistory(phone, nameInfo, role) {
                  if (!phone) { alert('無法取得會員電話'); return; }
                  
@@ -862,7 +790,84 @@
                      console.error("History Error:", err);
                      alert('查詢失敗：' + err.message); 
                  });
-             }          
+             }
+
+            // Event Bindings
+            document.getElementById('member-status-card').addEventListener('click', window.showMemberDetailPage);
+            document.getElementById('back-to-home-btn').addEventListener('click', () => { showPage(document.getElementById('customer-home-page')); });
+            document.getElementById('login-button').addEventListener('click', handleLogin);
+            document.getElementById('register-button').addEventListener('click', () => { document.getElementById('reg-phone').value=''; openModal(document.getElementById('register-modal')); });
+            document.getElementById('confirm-reg-button').addEventListener('click', handleRegister);
+            document.getElementById('customer-logout-button').addEventListener('click', logout);
+            document.getElementById('add-points-btn').addEventListener('click', openQRScanner);
+            document.getElementById('redeem-points-btn').addEventListener('click', openRedeemPointsModal);
+            document.getElementById('points-history-btn').addEventListener('click', () => fetchAndShowPointsHistory(currentCustomerPhone));
+            document.getElementById('voucher-history-btn').addEventListener('click', () => fetchAndShowVoucherHistory(currentCustomerPhone, currentCustomerInfo, 'customer'));
+            
+            document.getElementById('admin-logout-button').addEventListener('click', logout);
+            document.getElementById('lookup-button').addEventListener('click', handleAdminLookup);
+            document.getElementById('admin-add-voucher-btn').addEventListener('click', openAddVoucherModal);
+            document.getElementById('admin-redeem-voucher-btn').addEventListener('click', () => openModal(document.getElementById('admin-verify-code-modal')));
+            document.getElementById('admin-send-coupon-btn').addEventListener('click', () => {
+                document.getElementById('send-coupon-phone').value = ''; document.getElementById('send-coupon-type').value = ''; document.getElementById('send-coupon-qty').value = '1'; document.getElementById('send-coupon-expiry').value = ''; 
+                document.getElementById('custom-coupon-name-group').classList.add('hidden'); document.getElementById('send-target-mode').value = 'phone'; document.getElementById('target-phone-group').classList.remove('hidden'); document.getElementById('target-level-group').classList.add('hidden');
+                openModal(document.getElementById('admin-send-coupon-modal'));
+            });
+            document.getElementById('confirm-send-coupon-btn').addEventListener('click', handleAdminSendCoupon);
+            document.getElementById('admin-voucher-history-btn').addEventListener('click', () => { if (searchedPhone) fetchAndShowVoucherHistory(searchedPhone.phone, {lastName: searchedPhone.lastName, title: searchedPhone.title}, 'admin'); else alert('請先查詢會員資料'); });
+            document.getElementById('admin-points-history-btn').addEventListener('click', () => { if (searchedPhone) fetchAndShowPointsHistory(searchedPhone.phone); else alert('請先查詢會員資料'); });
+
+            document.getElementById('send-coupon-type').addEventListener('change', (e) => { const grp = document.getElementById('custom-coupon-name-group'); if(e.target.value === 'other') grp.classList.remove('hidden'); else grp.classList.add('hidden'); });
+            document.getElementById('send-target-mode').addEventListener('change', (e) => { const ph = document.getElementById('target-phone-group'); const lv = document.getElementById('target-level-group'); if(e.target.value === 'phone') { ph.classList.remove('hidden'); lv.classList.add('hidden'); } else { ph.classList.add('hidden'); lv.classList.remove('hidden'); } });
+
+            document.getElementById('confirm-add-voucher-btn').addEventListener('click', handleConfirmAddVoucher);
+            document.getElementById('cancel-add-btn').addEventListener('click', () => closeModal(document.getElementById('admin-confirm-add-modal')));
+            document.getElementById('final-confirm-add-btn').addEventListener('click', handleFinalAddVoucher);
+            document.getElementById('verify-redeem-code-btn').addEventListener('click', handleVerifyRedeemCode);
+            document.getElementById('cancel-redeem-btn').addEventListener('click', () => closeModal(document.getElementById('admin-confirm-redeem-modal')));
+            document.getElementById('final-confirm-redeem-btn').addEventListener('click', handleFinalConfirmRedeem);
+            document.getElementById('cancel-point-redeem-btn').addEventListener('click', () => { closeModal(document.getElementById('point-redeem-confirm-modal')); openRedeemPointsModal(); });
+            document.getElementById('staff-confirm-point-redeem-btn').addEventListener('click', handleStaffConfirmPointRedeem);
+            document.getElementById('cancel-use-coupon-btn').addEventListener('click', () => { closeModal(document.getElementById('coupon-confirm-modal')); openCouponsModal(); });
+            document.getElementById('confirm-use-coupon-btn').addEventListener('click', () => { closeModal(document.getElementById('coupon-confirm-modal')); document.getElementById('staff-code-input').value = ''; openModal(document.getElementById('staff-verify-modal')); });
+            document.getElementById('verify-staff-code-btn').addEventListener('click', handleVerifyStaffCodeForCoupon);
+            document.getElementById('close-qr-reader').addEventListener('click', closeQRScanner);
+            document.querySelectorAll('.modal-overlay').forEach(modal => { modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal); }); const closeBtn = modal.querySelector('.close-button'); if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modal)); });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => { btn.addEventListener('click', (e) => { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); e.target.classList.add('active'); currentCouponTab = e.target.getAttribute('data-tab'); updateCouponListDisplay(); }); });
+
+            if (savedPhone) { const inputElement = document.getElementById('login-phone-input'); const btn = document.getElementById('login-button'); if (inputElement && btn) { inputElement.value = savedPhone; setTimeout(() => { btn.click(); }, 500); } }
+
+            // -- Logic functions (Re-using from v25.06.01 context) --
+            // Only Key Changes Highlighted:
+            // handleLogin -> checks result.found
+            // handleAdminLookup -> checks result.found
+            // openQRScanner -> resets html5QrCodeScanner
+            
+            function handleLogin() {
+                const input = document.getElementById('login-phone-input').value.trim();
+                if (!input) { alert('請輸入電話號碼'); return; }
+                if (admins[input]) { currentAdminId = input; showPage(document.getElementById('admin-home-page')); updateGreeting('admin-time-greeting', 'admin-id-greeting', admins[input]); document.getElementById('lookup-results').classList.add('hidden'); const sendBtn = document.getElementById('admin-send-coupon-btn'); if(sendBtn) { if (CAN_SEND_COUPON_ADMINS.includes(input)) sendBtn.style.display = 'inline-block'; else sendBtn.style.display = 'none'; } return; }
+                if (!/^\d{10}$/.test(input)) { alert('電話號碼格式錯誤'); return; }
+                showLoader(); isCouponsLoaded = false;
+                fetch(`${SCRIPT_URL}?action=query&phone=${input}`).then(r=>r.json()).then(result => {
+                    hideLoader();
+                    if (result.status === 'success') {
+                        if (result.found) {
+                            localStorage.setItem('cupicho_user_phone', result.data.phone); currentCustomerPhone = result.data.phone; currentCustomerInfo = { lastName: result.data.lastName, title: result.data.title };
+                            showPage(document.getElementById('customer-home-page')); updateGreeting('customer-time-greeting', 'customer-name-greeting', result.data.lastName + result.data.title);
+                            document.getElementById('points-balance').textContent = result.data.points; document.getElementById('voucher-balance').textContent = result.data.vouchers;
+                            updateMemberLevelUI(result.data.annualPoints); fetchCouponData();
+                        } else { document.getElementById('reg-phone').value = input; openModal(document.getElementById('register-modal')); }
+                    } else { alert('⚠️ 系統錯誤：' + (result.message || '未知錯誤')); }
+                }).catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); });
+            }
+
+            function handleRegister() { const phone = document.getElementById('reg-phone').value.trim(); const lastName = document.getElementById('reg-lastname').value.trim(); const title = document.getElementById('reg-title').value; if (!/^\d{10}$/.test(phone)) { alert('電話號碼格式錯誤'); return; } if (!lastName) { alert('請輸入姓氏'); return; } showLoader(); fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'register', phone, lastName, title }) }).then(r => r.json()).then(result => { hideLoader(); if (result.status === 'success') { alert('✅ 註冊成功！歡迎您！'); localStorage.setItem('cupicho_user_phone', phone); closeModal(document.getElementById('register-modal')); currentCustomerPhone = phone; currentCustomerInfo = { lastName, title }; showPage(document.getElementById('customer-home-page')); updateGreeting('customer-time-greeting', 'customer-name-greeting', lastName + title); document.getElementById('points-balance').textContent = 0; document.getElementById('voucher-balance').textContent = 0; updateMemberLevelUI(0); } else { alert('⚠️ ' + (result.message || '註冊失敗')); } }).catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); }); }
+            function logout() { localStorage.removeItem('cupicho_user_phone'); window.location.reload(); }
+            function fetchCouponData() { if (!currentCustomerPhone) return; fetch(`${SCRIPT_URL}?action=getUsedCoupons&phone=${currentCustomerPhone}`).then(r => r.json()).then(res => { if (res.status === 'success') { globalUsedCoupons = res.data || []; globalExtraCoupons = res.extra || []; isCouponsLoaded = true; updateMemberLevelUI(currentAnnualPoints); } }).catch(console.error); }
+            function handleAdminSendCoupon() { const phone = document.getElementById('send-coupon-phone').value.trim(); const typeSelect = document.getElementById('send-coupon-type'); let type = typeSelect.value; const qty = parseInt(document.getElementById('send-coupon-qty').value); const targetMode = document.getElementById('send-target-mode').value; const expiryInput = document.getElementById('send-coupon-expiry').value; if (type === 'other') { const customName = document.getElementById('send-coupon-custom-name').value.trim(); if (!customName) { alert('請輸入優惠卷名稱'); return; } type = `other:${customName}`; } let payload = { action: 'sendCoupon', type, qty, employeeId: currentAdminId, targetMode, expiry: expiryInput }; if (targetMode === 'phone') { if (!phone || !/^\d{10}$/.test(phone)) { alert('請輸入正確電話'); return; } payload.phone = phone; } else { payload.level = document.getElementById('send-coupon-level').value; } if (!type || !qty) { alert('請填寫完整'); return; } if (targetMode === 'level' && !confirm(`確定要派發給「${document.getElementById('send-coupon-level').selectedOptions[0].text}」嗎？`)) return; showLoader(); fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json()).then(res => { hideLoader(); if(res.status === 'success') { alert('✅ 派發成功！'); closeModal(document.getElementById('admin-send-coupon-modal')); } else { alert('⚠️ 派發失敗：' + res.message); } }).catch(() => { hideLoader(); alert('連線錯誤'); }); }
+            function fetchAndShowPointsHistory(phone) { if (!phone) { alert('無法取得會員電話'); return; } showLoader(); fetch(`${SCRIPT_URL}?action=getPointsHistory&phone=${phone}`).then(r => r.json()).then(result => { hideLoader(); if (result.status === 'success') { const contentEl = document.getElementById('points-history-content'); contentEl.innerHTML = ''; if (result.data.length === 0) { contentEl.innerHTML = '<p style="text-align:center; color:#888;">沒有任何點數紀錄。</p>'; } else { result.data.forEach(log => { const logDate = new Date(log.timestamp).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }); const logElement = document.createElement('div'); logElement.className = 'history-item'; logElement.innerHTML = ` <div class="history-info"> <span class="history-date">${logDate}</span> <span class="history-detail" style="font-weight:bold; color:#4a2c2a;">${log.item || '未知項目'}</span> <span class="history-detail" style="font-size:0.9em; color:#666;">${log.memo}</span> </div> `; contentEl.appendChild(logElement); }); } openModal(document.getElementById('points-history-modal')); } else { alert('⚠️ ' + (result.message || '查詢失敗')); } }).catch(err => { hideLoader(); alert('🚫 網路或伺服器錯誤'); }); }
             function openRedeemPointsModal() { showLoader(); fetch(`${SCRIPT_URL}?action=query&phone=${currentCustomerPhone}`).then(r => r.json()).then(result => { hideLoader(); if (result.status === 'success') { document.getElementById('modal-current-points').textContent = result.data.points; document.getElementById('modal-expiring-points').textContent = result.data.expiringPoints; const listContainer = document.getElementById('points-products-list'); listContainer.innerHTML = ''; redeemableItems.forEach(product => { const productDiv = document.createElement('div'); productDiv.className = 'product-item'; const isAffordable = result.data.points >= product.cost; const btnText = isAffordable ? '點擊兌換' : '點數不足'; const btnDisabled = !isAffordable ? 'disabled' : ''; 
                 // ★★ FIX: Apply new product item structure ★★
                 productDiv.innerHTML = `
