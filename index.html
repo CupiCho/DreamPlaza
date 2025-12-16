@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.06.10
-    Last Updated: 2025/01/07 (Style Fix: Increase Form Spacing for Send Coupon Modal)
+    Current Version: v25.06.11
+    Last Updated: 2025/01/07 (Fix: Coupon Modal Layout - Image Size, Text List, Button Alignment)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -172,8 +172,7 @@
         .form-grid { display: grid; gap: 15px; text-align: left; }
         .form-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: #666; }
         .form-group .form-input { text-align: left; }
-        
-        /* ★★★ 修正：針對「派發優惠卷」視窗加大欄位間距 ★★★ */
+        /* 針對「派發優惠卷」視窗加大欄位間距 */
         #admin-send-coupon-modal .form-grid { gap: 25px; }
 
         /* 其他 */
@@ -184,26 +183,8 @@
         .history-meta { font-size: 0.85em; color: #888; line-height: 1.4; }
         
         /* 點數兌換商品列表樣式 */
-        .product-item { 
-            display: flex; 
-            align-items: center; 
-            margin-bottom: 15px; 
-            border: 1px solid #e0e0e0; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            background: #fff; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02); 
-        }
-        .product-img-container { 
-            width: 120px; 
-            height: 120px; 
-            background-color: #fff5e6; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            border-right: 1px dashed #e0e0e0; 
-            flex-shrink: 0; 
-        }
+        .product-item { display: flex; align-items: center; margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .product-img-container { width: 120px; height: 120px; background-color: #fff5e6; display: flex; align-items: center; justify-content: center; border-right: 1px dashed #e0e0e0; flex-shrink: 0; }
         .product-img { width: 90%; height: 90%; object-fit: contain; }
         .product-details { flex: 1; text-align: left; padding: 0 15px; display: flex; flex-direction: column; justify-content: center; }
         .product-name { font-size: 1.1em; font-weight: bold; color: #333; margin-bottom: 5px; line-height: 1.2; }
@@ -222,16 +203,7 @@
         .coupon-desc { font-size: 0.9em; color: #666; }
         .coupon-action { padding-right: 15px; }
         
-        .btn-use-coupon { 
-            background-color: #cb9c65; 
-            color: #000; 
-            border: none; 
-            padding: 8px 15px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-size: 0.9em; 
-            font-weight: bold;
-        }
+        .btn-use-coupon { background-color: #cb9c65; color: #000; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9em; font-weight: bold; }
         .btn-use-coupon:disabled { background-color: #ccc; cursor: default; color: #fff; }
 
         .tabs-header { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; }
@@ -241,46 +213,45 @@
         .points-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .points-current { font-size: 1.2em; color: #333; font-weight: bold; }
         .points-expiring { font-size: 0.9em; color: #c0392b; }
-        
-        .points-disclaimer { 
-            font-size: 0.7em;  
-            color: #999;      
-            margin-bottom: 15px; 
-            text-align: left; 
-            line-height: 1.5; 
-        }
+        .points-disclaimer { font-size: 0.7em; color: #999; margin-bottom: 15px; text-align: left; line-height: 1.5; }
 
         /* 版本號碼樣式 - 強制小灰字 */
-        .version-info {
-            margin-top: 30px;
-            margin-bottom: 10px;
-            font-size: 0.75em;
-            color: #ccc;
-            text-align: center;
-            width: 100%;
+        .version-info { margin-top: 30px; margin-bottom: 10px; font-size: 0.75em; color: #ccc; text-align: center; width: 100%; }
+
+        /* ★★★ FIX: 圖片大小與按鈕排列修復 ★★★ */
+        .coupon-confirm-img { 
+            height: 120px;       /* 固定高度 */
+            width: auto;         /* 寬度自動 */
+            max-width: 100%;     /* 不超過容器 */
+            object-fit: contain; 
+            margin-bottom: 15px; 
+            display: block; 
+            margin-left: auto; 
+            margin-right: auto;
+            border-radius: 8px;
+            border: 1px solid #eee;
         }
+
+        .coupon-confirm-content { text-align: left; margin-bottom: 20px; font-size: 0.9em; line-height: 1.5; color: #555; }
+        .coupon-confirm-content p { margin: 8px 0; }
+        .coupon-confirm-content ul { padding-left: 20px; margin: 0; } /* 修正列表樣式 */
+        .coupon-confirm-content ol { padding-left: 20px; margin: 0; }
+        .coupon-confirm-content li { margin-bottom: 5px; }
+        
+        .confirm-buttons { display: flex; gap: 15px; margin-top: 30px; }
+        /* 強制按鈕左右平分 */
+        .confirm-buttons .btn { flex: 1; } 
+
+        .confirm-details p { margin: 10px 0; font-size: 1.1em; line-height: 1.6; text-align: left; }
+        .confirm-details strong { color: #c0392b; }
 
         /* Loading Animation */
         #loading-modal { z-index: 3000; }
         .loading-box { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        .loading-spinner { 
-            border: 5px solid #f3f3f3; 
-            border-top: 5px solid #6a1d7b; 
-            border-radius: 50%; 
-            width: 50px; 
-            height: 50px; 
-            animation: spin 1s linear infinite; 
-        }
-        .loading-text { 
-            color: #fff;
-            font-size: 1.2em; 
-            font-weight: bold;
-        }
+        .loading-spinner { border: 5px solid #f3f3f3; border-top: 5px solid #6a1d7b; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .loading-text { color: #fff; font-size: 1.2em; font-weight: bold; }
 
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         #qr-reader-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         #qr-reader { width: 90%; max-width: 400px; background: #555; border-radius: 10px; overflow: hidden; }
@@ -290,26 +261,10 @@
     <!-- 定義 SVG 漸層 (隱藏) -->
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="grad-white" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#F5E6D3; stop-opacity:1" />
-          <stop offset="50%" style="stop-color:#FFFFFF; stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#FAF0E6; stop-opacity:1" />
-        </linearGradient>
-        <linearGradient id="grad-bronze" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#B87333; stop-opacity:1" />
-          <stop offset="40%" style="stop-color:#E8A87C; stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#8B4513; stop-opacity:1" />
-        </linearGradient>
-        <linearGradient id="grad-silver" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#A9A9A9; stop-opacity:1" />
-          <stop offset="40%" style="stop-color:#F0F0F0; stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#696969; stop-opacity:1" />
-        </linearGradient>
-        <linearGradient id="grad-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#DAA520; stop-opacity:1" />
-          <stop offset="40%" style="stop-color:#FFD700; stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#B8860B; stop-opacity:1" />
-        </linearGradient>
+        <linearGradient id="grad-white" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#F5E6D3; stop-opacity:1"/><stop offset="50%" style="stop-color:#FFFFFF; stop-opacity:1"/><stop offset="100%" style="stop-color:#FAF0E6; stop-opacity:1"/></linearGradient>
+        <linearGradient id="grad-bronze" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#B87333; stop-opacity:1"/><stop offset="40%" style="stop-color:#E8A87C; stop-opacity:1"/><stop offset="100%" style="stop-color:#8B4513; stop-opacity:1"/></linearGradient>
+        <linearGradient id="grad-silver" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#A9A9A9; stop-opacity:1"/><stop offset="40%" style="stop-color:#F0F0F0; stop-opacity:1"/><stop offset="100%" style="stop-color:#696969; stop-opacity:1"/></linearGradient>
+        <linearGradient id="grad-gold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#DAA520; stop-opacity:1"/><stop offset="40%" style="stop-color:#FFD700; stop-opacity:1"/><stop offset="100%" style="stop-color:#B8860B; stop-opacity:1"/></linearGradient>
       </defs>
     </svg>
 
@@ -327,7 +282,7 @@
                     <div class="divider"></div>
                     <button class="btn btn-secondary" id="register-button">會員註冊</button>
                 </div>
-                <div class="version-info">v25.06.10</div>
+                <div class="version-info">v25.06.11</div>
             </div>
         </div>
         
@@ -376,7 +331,7 @@
                         <button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button>
                     </div>
                 </div>
-                <div class="version-info">v25.06.10</div>
+                <div class="version-info">v25.06.11</div>
             </div>
         </div>
 
@@ -534,7 +489,7 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            const APP_VERSION = 'v25.06.10';
+            const APP_VERSION = 'v25.06.11';
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw07qEM3zDll_N9ICPnTT1aWMmHt2qF1JRrSO6dwIih84yAwxWgyQQGfVxQmS3alj8/exec";
             const currentYear = new Date().getFullYear();
 
@@ -680,13 +635,18 @@
                  globalExtraCoupons.forEach(c => {
                      const isUsed = globalUsedCoupons.includes(c.id);
                      let isExpired = false;
+                     // ... (略過日期過期判斷邏輯，這部分不用動) ...
                      if(c.expiry) { const expDate = new Date(c.expiry); if(expDate < today) isExpired = true; }
+                     
                      let status = 'unused';
                      if(isUsed) status = 'used'; else if(isExpired) status = 'expired';
+                     
                      if (status === currentCouponTab) {
                          let imgMap = { 'gift_americano': 'gift_americano.png', 'gift_bogo': 'gift_bogo.png', 'coupon_5': 'coupon_5.png', 'coupon_8': 'coupon_8.png', 'coupon_10': 'coupon_10.png', 'gift_gold': 'gift_gold.png' };
                          let nameMap = { 'gift_americano': '美式咖啡兌換卷', 'gift_bogo': '飲品買一送一卷', 'coupon_5': '5% 回饋優惠卷', 'coupon_8': '8% 回饋優惠卷', 'coupon_10': '10% 回饋優惠卷', 'gift_gold': '金賞好禮兌換卷' };
                          let typeMap = { 'gift_americano': 'americano', 'gift_bogo': 'bogo', 'coupon_5': 'rebate', 'coupon_8': 'rebate', 'coupon_10': 'rebate', 'gift_gold': 'gold' };
+                         
+                         // ★★★ 請替換/修改以下這段 (約第 1070 行) ★★★
                          let dateText = '無使用期限';
                          if (c.expiry) {
                              // 強制轉字串處理，避免格式問題
@@ -703,6 +663,11 @@
                              desc: dateText, // 使用上方處理過的變數
                              status: status 
                          };
+                         // ★★★ 修改結束 ★★★
+
+                         if (c.type.startsWith('other:')) { displayItem.name = c.type.split(':')[1]; displayItem.type = 'other'; displayItem.img = CUSTOM_COUPON_IMG; }
+                         itemsToShow.push(displayItem);
+                     }
                  });
                  if (itemsToShow.length === 0) listContainer.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">此分類目前沒有優惠卷</p>';
                  else itemsToShow.forEach(item => renderCouponItem(item, listContainer));
