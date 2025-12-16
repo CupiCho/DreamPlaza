@@ -333,7 +333,7 @@
                     <div class="divider"></div>
                     <button class="btn btn-secondary" id="register-button">會員註冊</button>
                 </div>
-                <div class="version-info">v25.06.19</div>
+                <div class="version-info">v25.06.20</div>
             </div>
         </div>
         
@@ -380,7 +380,7 @@
                         <button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button>
                     </div>
                 </div>
-                <div class="version-info">v25.06.19</div>
+                <div class="version-info">v25.06.20</div>
             </div>
         </div>
 
@@ -503,6 +503,7 @@
                 <div style="text-align: center; margin: 30px 0;">
                     <div id="verification-code-display" style="font-size: 3.5em; font-weight: bold; color: #4a2c2a; letter-spacing: 5px; font-family: monospace;"></div>
                     <p style="color: #c0392b; font-size: 0.9em; margin-top: 15px;">有效時間倒數 <span id="countdown-timer">03:00</span></p>
+                    <button class="btn btn-secondary" style="margin-top: 20px; background-color: #eee; color: #555;" onclick="closeModal(this.parentElement.parentElement)">關閉視窗</button>
                 </div>
             </div>
         </div>
@@ -561,7 +562,7 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            const APP_VERSION = 'v25.06.19';
+            const APP_VERSION = 'v25.06.20';
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw07qEM3zDll_N9ICPnTT1aWMmHt2qF1JRrSO6dwIih84yAwxWgyQQGfVxQmS3alj8/exec";
             const currentYear = new Date().getFullYear();
 
