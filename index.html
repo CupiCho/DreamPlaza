@@ -687,10 +687,22 @@
                          let imgMap = { 'gift_americano': 'gift_americano.png', 'gift_bogo': 'gift_bogo.png', 'coupon_5': 'coupon_5.png', 'coupon_8': 'coupon_8.png', 'coupon_10': 'coupon_10.png', 'gift_gold': 'gift_gold.png' };
                          let nameMap = { 'gift_americano': '美式咖啡兌換卷', 'gift_bogo': '飲品買一送一卷', 'coupon_5': '5% 回饋優惠卷', 'coupon_8': '8% 回饋優惠卷', 'coupon_10': '10% 回饋優惠卷', 'gift_gold': '金賞好禮兌換卷' };
                          let typeMap = { 'gift_americano': 'americano', 'gift_bogo': 'bogo', 'coupon_5': 'rebate', 'coupon_8': 'rebate', 'coupon_10': 'rebate', 'gift_gold': 'gold' };
-                         let displayItem = { id: c.id, type: typeMap[c.type] || 'gold', img: imgMap[c.type] || 'gift_gold.png', name: nameMap[c.type] || '專屬優惠卷', desc: c.expiry ? `有效期限: ${c.expiry.split('T')[0]}` : '無使用期限', status: status };
-                         if (c.type.startsWith('other:')) { displayItem.name = c.type.split(':')[1]; displayItem.type = 'other'; displayItem.img = CUSTOM_COUPON_IMG; }
-                         itemsToShow.push(displayItem);
-                     }
+                         let dateText = '無使用期限';
+                         if (c.expiry) {
+                             // 強制轉字串處理，避免格式問題
+                             const dateStr = String(c.expiry);
+                             // 如果包含 T (例如 2025-12-17T00:00...) 則切個，否則直接顯示
+                             dateText = `有效期限: ${dateStr.indexOf('T') > -1 ? dateStr.split('T')[0] : dateStr}`;
+                         }
+
+                         let displayItem = { 
+                             id: c.id, 
+                             type: typeMap[c.type] || 'gold', 
+                             img: imgMap[c.type] || 'gift_gold.png', 
+                             name: nameMap[c.type] || '專屬優惠卷', 
+                             desc: dateText, // 使用上方處理過的變數
+                             status: status 
+                         };
                  });
                  if (itemsToShow.length === 0) listContainer.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">此分類目前沒有優惠卷</p>';
                  else itemsToShow.forEach(item => renderCouponItem(item, listContainer));
