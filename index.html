@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CupiCho DP會員專區</title>
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32"> 
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
     
     <style>
         /* --- 基礎設定 --- */
@@ -185,6 +185,7 @@
         .loading-text { color: #fff; font-size: 1.2em; font-weight: bold; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* QR Scanner Container - Fixed and Restored */
         #qr-reader-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         #qr-reader { width: 90%; max-width: 400px; background: #555; border-radius: 10px; overflow: hidden; }
 
@@ -212,11 +213,11 @@
             <div class="news-label">門市優惠快報</div>
             <div class="news-content">
                 <div class="news-list">
-                    <div class="news-item">1/1-1/31推薦朋友加入門市官方帳號，</div>
-                    <div class="news-item">雙方都可以領到美式兌換卷喔！</div>
                     <div class="news-item">晉升到可可金賞會員享10%回饋！</div>
                     <div class="news-item">可可銅賞以上會員，享有更多權益優惠</div>
                     <div class="news-item">1/1-1/31推薦朋友加入門市官方帳號，</div>
+                    <div class="news-item">雙方都可以領到美式兌換卷優～</div>
+                    <div class="news-item">晉升到可可金賞會員享10%回饋！</div>
                 </div>
             </div>
         </div>
@@ -234,7 +235,7 @@
                     <button class="btn btn-secondary" id="register-button">會員註冊</button>
                 </div>
                 <button id="contact-support-login-btn" class="btn-outline-red">聯繫客服</button>
-                <div class="version-info">v25.10.08</div>
+                <div class="version-info">v25.10.10</div>
             </div>
         </div>
         
@@ -272,7 +273,7 @@
                 </div>
                 
                 <button id="contact-support-btn" class="btn-outline-red">聯繫客服</button>
-                <div class="version-info">v25.10.08</div>
+                <div class="version-info">v25.10.10</div>
             </div> 
         </div>
 
@@ -434,12 +435,16 @@
         <div id="admin-confirm-redeem-modal" class="modal-overlay hidden"><div class="modal-content"><h2 class="modal-title">請確認核銷資訊</h2><div id="admin-confirm-redeem-details" class="confirm-details"></div><div class="confirm-buttons"><button id="cancel-redeem-btn" class="btn btn-secondary">取消</button><button id="final-confirm-redeem-btn" class="btn btn-primary">確認核銷</button></div></div></div>
         <div id="admin-confirm-add-modal" class="modal-overlay hidden"><div class="modal-content"><h2 class="modal-title">請確認新增資訊</h2><div id="admin-confirm-add-details" class="confirm-details"></div><div class="confirm-buttons"><button id="cancel-add-btn" class="btn btn-secondary">取消</button><button id="final-confirm-add-btn" class="btn btn-primary">新增</button></div></div></div>
 
+        <div id="qr-reader-container" class="hidden"><p style="color: white; margin-bottom: 15px;">請掃描集點卡 QR Code</p><div id="qr-reader"></div><button id="close-qr-reader" class="btn btn-secondary" style="margin-top: 20px; width: auto; background-color: #aaa;">關閉掃描</button></div>
+
+    </div>
+    
     <script>
         // Global Error Trap
         window.onerror = function(msg, url, line) { console.error("系統錯誤:", msg, "Line:", line); };
         
         // Define all functions first (Global Scope)
-        const APP_VERSION = 'v25.10.08';
+        const APP_VERSION = 'v25.10.10';
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwO7gQJ4y_NaTMHbNLWgmjVusyNZo06n8y6jwaZmM_Zc_ZrjuSGgNBMgG-9zba1oXg/exec";
         const currentYear = new Date().getFullYear();
         const admins = { '10427091': '7091 Arno', '10431118': '1118 Carol', '10416377': '6377 Eric', '10425120': '5120 Elly', '10431938': '1938 Jewel', '10413569': '3569 Summer', '10426630': '6630 Elaine' };
@@ -782,7 +787,48 @@
 
         function handleStaffConfirmPointRedeem() { if(!pendingPointRedeemItem) return; showLoader(); fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'directRedeemPoints', phone: currentCustomerPhone, item: pendingPointRedeemItem.name, amount: pendingPointRedeemItem.cost }) }).then(r => r.json()).then(res => { hideLoader(); if (res.status === 'success') { alert('✅ 兌換成功！'); document.getElementById('points-balance').textContent = res.newPoints; document.getElementById('page-current-points').textContent = res.newPoints; updateMemberLevelUI(res.annualPoints); closeModal(document.getElementById('point-redeem-confirm-modal')); } else { alert('⚠️ 兌換失敗：' + res.message); } }).catch(err => { hideLoader(); alert('連線錯誤'); }); }
         function handleVerifyStaffCodeForCoupon() { const inputCode = document.getElementById('staff-code-input').value; if (inputCode === '287719' && pendingCouponUseId) { showLoader(); fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'redeemCoupon', phone: currentCustomerPhone, couponId: pendingCouponUseId, title: '優惠卷核銷' }) }).then(r => r.json()).then(res => { hideLoader(); if (res.status === 'success') { globalUsedCoupons.push(pendingCouponUseId); alert('核銷成功！'); closeModal(document.getElementById('staff-verify-modal')); updateMemberLevelUI(currentAnnualPoints); openCouponsModal(); } else { alert('核銷失敗'); } }).catch(err => { hideLoader(); alert('連線錯誤'); }); } else { alert('核銷碼錯誤'); } }
-        function openQRScanner() { const qrContainer = document.getElementById('qr-reader-container'); qrContainer.classList.remove('hidden'); if (!html5QrCodeScanner) { html5QrCodeScanner = new Html5Qrcode("qr-reader"); } html5QrCodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => { html5QrCodeScanner.stop().then(() => { qrContainer.classList.add('hidden'); showLoader(); fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addPointsFromQR', phone: currentCustomerPhone, qrData: decodedText }) }).then(r => r.json()).then(res => { hideLoader(); if(res.status === 'success') { alert(res.message); document.getElementById('points-balance').textContent = res.newPoints; updateMemberLevelUI(res.annualPoints); } else alert('掃描失敗: ' + res.message); }); }).catch(err => { qrContainer.classList.add('hidden'); }); }).catch(err => { if(!err?.message?.includes("already running")) { alert("無法啟動相機: " + err); qrContainer.classList.add('hidden'); } }); }
+        
+        function openQRScanner() { 
+            console.log("嘗試開啟 QR Scanner...");
+            const qrContainer = document.getElementById('qr-reader-container'); 
+            if(!qrContainer) { alert("系統錯誤: 找不到掃描視窗"); return; }
+            
+            // 先顯示黑底，避免初始化失敗時沒反應
+            qrContainer.classList.remove('hidden'); 
+
+            if (!html5QrCodeScanner) { 
+                try {
+                    html5QrCodeScanner = new Html5Qrcode("qr-reader"); 
+                } catch(e) {
+                    alert("無法初始化相機模組，請重新整理網頁再試。");
+                    qrContainer.classList.add('hidden');
+                    return;
+                }
+            } 
+            
+            html5QrCodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => { 
+                html5QrCodeScanner.stop().then(() => { 
+                    qrContainer.classList.add('hidden'); 
+                    showLoader(); 
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addPointsFromQR', phone: currentCustomerPhone, qrData: decodedText }) })
+                    .then(r => r.json())
+                    .then(res => { 
+                        hideLoader(); 
+                        if(res.status === 'success') { 
+                            alert(res.message); 
+                            document.getElementById('points-balance').textContent = res.newPoints; 
+                            updateMemberLevelUI(res.annualPoints); 
+                        } else alert('掃描失敗: ' + res.message); 
+                    }); 
+                }).catch(err => { qrContainer.classList.add('hidden'); }); 
+            }).catch(err => { 
+                if(!err?.message?.includes("already running")) { 
+                    alert("無法啟動相機: " + err); 
+                    qrContainer.classList.add('hidden'); 
+                } 
+            }); 
+        }
+        
         function closeQRScanner() { const qrContainer = document.getElementById('qr-reader-container'); if (html5QrCodeScanner) { html5QrCodeScanner.stop().then(() => { qrContainer.classList.add('hidden'); }).catch(() => { qrContainer.classList.add('hidden'); }); } else { qrContainer.classList.add('hidden'); } }
         function handleAdminLookup() { const phone = document.getElementById('lookup-phone-input').value.trim(); if (!/^\d{10}$/.test(phone)) { alert('電話號碼格式錯誤'); return; } showLoader(); fetch(`${SCRIPT_URL}?action=query&phone=${phone}`).then(r => r.json()).then(result => { hideLoader(); if (result.status === 'success') { if (result.found) { searchedPhone = result.data; document.getElementById('result-name-display').textContent = `${result.data.lastName}${result.data.title}`; const ap = parseInt(result.data.annualPoints) || 0; let levelName = '可可白賞'; if (ap >= LEVEL_THRESHOLDS.LV3) levelName = '可可金賞'; else if (ap >= LEVEL_THRESHOLDS.LV2) levelName = '可可銀賞'; else if (ap >= LEVEL_THRESHOLDS.LV1) levelName = '可可銅賞'; document.getElementById('result-level-display').textContent = levelName; document.getElementById('result-points').textContent = result.data.points; document.getElementById('result-vouchers').textContent = result.data.vouchers; document.getElementById('lookup-results').classList.remove('hidden'); } else { searchedPhone = null; document.getElementById('lookup-results').classList.add('hidden'); alert('查無此會員資料。'); } } else { searchedPhone = null; alert('系統錯誤'); } }).catch(err => { hideLoader(); alert('連線錯誤'); }); }
         function openAddVoucherModal() { const phoneInput = document.getElementById('add-voucher-phone'); if (searchedPhone && searchedPhone.phone) phoneInput.value = searchedPhone.phone; else phoneInput.value = ''; document.getElementById('add-voucher-item').value = ''; document.getElementById('add-voucher-amount').value = ''; document.getElementById('add-voucher-order-id').value = ''; document.getElementById('add-voucher-employee-id').value = ''; openModal(document.getElementById('add-voucher-modal')); }
